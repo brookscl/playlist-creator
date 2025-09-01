@@ -36,7 +36,12 @@ class MockMusicSearcher: MusicSearcher {
         
         var results: [Song: [SearchResult]] = [:]
         for song in songs {
-            results[song] = try await search(for: song)
+            do {
+                let searchResults = try await search(for: song)
+                results[song] = searchResults
+            } catch {
+                results[song] = []
+            }
         }
         return results
     }

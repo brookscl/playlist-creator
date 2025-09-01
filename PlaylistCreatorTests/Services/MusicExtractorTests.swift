@@ -146,18 +146,12 @@ final class MusicExtractorTests: XCTestCase {
     
     func testExtractSongsImplementation() async throws {
         let transcript = Transcript(text: "Test transcript")
-        let expectedExtracted = [
-            ExtractedSong(
-                song: Song(title: "Test Song", artist: "Test Artist", confidence: 0.8),
-                context: "Test context",
-                timestamp: 60.0,
-                extractionConfidence: 0.9
-            )
+        let expectedSongs = [
+            Song(title: "Test Song", artist: "Test Artist", confidence: 0.8)
         ]
-        mockExtractor.extractSongsWithContextResult = expectedExtracted
+        mockExtractor.extractSongsResult = expectedSongs
         
         let songs = try await mockExtractor.extractSongs(from: transcript)
-        let expectedSongs = expectedExtracted.map { $0.song }
         
         XCTAssertEqual(songs, expectedSongs)
     }

@@ -12,9 +12,9 @@ struct ContentView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            Spacer()
+            FileUploadView()
         }
-        .frame(minWidth: 400, minHeight: 300)
+        .frame(minWidth: 500, minHeight: 400)
         .padding()
     }
 }
