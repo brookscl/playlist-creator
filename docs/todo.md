@@ -3,15 +3,15 @@
 ## Foundation Week (Week 1)
 
 ### 1.1: Project Setup and Basic Architecture
-- [ ] Create new Xcode project targeting macOS with SwiftUI
-- [ ] Configure Info.plist with necessary permissions for file access and network requests
-- [ ] Add MusicKit capability to the project
-- [ ] Create basic ContentView with "Playlist Creator" title
-- [ ] Set up proper folder structure: Models/, Services/, Views/, Tests/
-- [ ] Create basic test target and ensure it compiles
-- [ ] Write simple smoke test that verifies the app launches
-- [ ] Verify project builds and runs successfully
-- [ ] Ensure clean architecture is ready for expansion
+- [x] Create new Xcode project targeting macOS with SwiftUI
+- [x] Configure Info.plist with necessary permissions for file access and network requests
+- [x] Add MusicKit capability to the project
+- [x] Create basic ContentView with "Playlist Creator" title
+- [x] Set up proper folder structure: Models/, Services/, Views/, Tests/
+- [x] Create basic test target and ensure it compiles
+- [x] Write simple smoke test that verifies the app launches
+- [x] Verify project builds and runs successfully
+- [x] Ensure clean architecture is ready for expansion
 
 ### 1.2: Core Data Models with Tests
 - [ ] Write comprehensive unit tests FIRST for all data models (20+ tests minimum)
