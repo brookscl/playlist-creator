@@ -1,0 +1,82 @@
+name: PlaylistCreator
+options:
+  bundleIdPrefix: com.chrisbrooks
+  deploymentTarget:
+    macOS: "13.0"
+  developmentLanguage: en
+
+settings:
+  MARKETING_VERSION: 1.0.0
+  CURRENT_PROJECT_VERSION: 1
+
+targets:
+  PlaylistCreator:
+    type: application
+    platform: macOS
+    sources:
+      - path: PlaylistCreator
+        excludes:
+          - "*.md"
+    info:
+      path: PlaylistCreator/Info.plist
+      properties:
+        CFBundleDisplayName: Playlist Creator
+        CFBundleExecutable: PlaylistCreator
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundleName: PlaylistCreator
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSMinimumSystemVersion: "13.0"
+        NSHumanReadableCopyright: "Copyright © 2024. All rights reserved."
+        NSSupportsAutomaticTermination: true
+        NSSupportsSuddenTermination: true
+        NSRequiresAquaSystemAppearance: false
+    settings:
+      PRODUCT_NAME: PlaylistCreator
+      PRODUCT_BUNDLE_IDENTIFIER: com.chrisbrooks.PlaylistCreator
+      INFOPLIST_FILE: PlaylistCreator/Info.plist
+      CODE_SIGN_STYLE: Automatic
+      CODE_SIGN_IDENTITY: "-"
+      DEVELOPMENT_TEAM: ""
+      COMBINE_HIDPI_IMAGES: true
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      DEVELOPMENT_ASSET_PATHS: PlaylistCreator/Preview\ Content
+      ENABLE_PREVIEWS: true
+      SWIFT_VERSION: "5.0"
+      TARGETED_DEVICE_FAMILY: "2"
+      SUPPORTS_MACCATALYST: false
+      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: false
+
+  PlaylistCreatorTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: PlaylistCreatorTests
+    dependencies:
+      - target: PlaylistCreator
+    settings:
+      PRODUCT_NAME: PlaylistCreatorTests
+      PRODUCT_BUNDLE_IDENTIFIER: com.chrisbrooks.PlaylistCreatorTests
+      BUNDLE_LOADER: $(TEST_HOST)
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/PlaylistCreator.app/Contents/MacOS/PlaylistCreator
+      GENERATE_INFOPLIST_FILE: true
+
+schemes:
+  PlaylistCreator:
+    build:
+      targets:
+        PlaylistCreator: all
+        PlaylistCreatorTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets: [PlaylistCreatorTests]
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

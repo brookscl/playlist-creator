@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "apple-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://sosumi.ai/mcp"
+      ],
+      "env": {}
+    }
+  }
+}
