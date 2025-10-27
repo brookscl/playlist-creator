@@ -11,26 +11,21 @@ class WhisperTranscriptionService: Transcriber {
 
     // MARK: - Properties
 
-    private let apiKey: String?
-    private let apiURL = "https://api.openai.com/v1/audio/transcriptions"
-    private let model = "whisper-1"
+    private let whisperCLIPath: String
+    private let modelPath: String?
     var maxRetries = 3
     var progressCallback: ((Double) -> Void)?
 
     // MARK: - Initialization
 
-    init(apiKey: String? = nil) {
-        // Try to get API key from environment if not provided
-        self.apiKey = apiKey ?? ProcessInfo.processInfo.environment["OPENAI_API_KEY"]
+    init(whisperCLIPath: String = "/opt/homebrew/bin/whisper-cli", modelPath: String? = nil) {
+        self.whisperCLIPath = whisperCLIPath
+        self.modelPath = modelPath
     }
 
     // MARK: - Transcriber Protocol
 
     func transcribe(_ audio: ProcessedAudio) async throws -> Transcript {
-        guard apiKey != nil else {
-            throw TranscriptionError.apiKeyMissing
-        }
-
         updateProgress(0.0)
 
         // Preprocess audio
@@ -45,10 +40,6 @@ class WhisperTranscriptionService: Transcriber {
     }
 
     func transcribeWithTimestamps(_ audio: ProcessedAudio) async throws -> Transcript {
-        guard apiKey != nil else {
-            throw TranscriptionError.apiKeyMissing
-        }
-
         updateProgress(0.0)
 
         // Preprocess audio
@@ -136,132 +127,166 @@ class WhisperTranscriptionService: Transcriber {
     }
 
     private func performTranscription(_ audio: ProcessedAudio, includeTimestamps: Bool, chunk: AudioChunk? = nil) async throws -> Transcript {
-        guard let apiKey = apiKey else {
-            throw TranscriptionError.apiKeyMissing
+        // Build command arguments
+        var arguments = [String]()
+
+        // Add model path if provided
+        if let modelPath = modelPath {
+            arguments.append(contentsOf: ["-m", modelPath])
         }
 
-        // Build request
-        guard let url = URL(string: apiURL) else {
-            throw TranscriptionError.apiRequestFailed("Invalid API URL")
-        }
+        // Output JSON for parsing
+        arguments.append("--output-json")
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-
-        // Create multipart form data
-        let boundary = "Boundary-\(UUID().uuidString)"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        var body = Data()
-
-        // Add model parameter
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(model)\r\n".data(using: .utf8)!)
-
-        // Add timestamp granularities if needed
+        // Include detailed JSON with timestamps if requested
         if includeTimestamps {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"timestamp_granularities[]\"\r\n\r\n".data(using: .utf8)!)
-            body.append("segment\r\n".data(using: .utf8)!)
+            arguments.append("--output-json-full")
         }
 
-        // Add audio file
-        do {
-            let audioData = try Data(contentsOf: audio.url)
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"audio.m4a\"\r\n".data(using: .utf8)!)
-            body.append("Content-Type: audio/m4a\r\n\r\n".data(using: .utf8)!)
-            body.append(audioData)
-            body.append("\r\n".data(using: .utf8)!)
-        } catch {
-            throw TranscriptionError.apiRequestFailed("Failed to read audio file: \(error.localizedDescription)")
-        }
+        // Disable console output
+        arguments.append("--no-prints")
 
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        request.httpBody = body
+        // Add the audio file path
+        arguments.append(audio.url.path)
 
-        // Perform request with retry logic
-        return try await performRequestWithRetry(request: request, includeTimestamps: includeTimestamps)
+        // Execute CLI command
+        return try await executeWhisperCLI(arguments: arguments, includeTimestamps: includeTimestamps, audioURL: audio.url)
     }
 
-    private func performRequestWithRetry(request: URLRequest, includeTimestamps: Bool, attempt: Int = 0) async throws -> Transcript {
+    private func executeWhisperCLI(arguments: [String], includeTimestamps: Bool, audioURL: URL, attempt: Int = 0) async throws -> Transcript {
+        updateProgress(0.2)
+
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: whisperCLIPath)
+            process.arguments = arguments
 
-            guard let httpResponse = response as? HTTPURLResponse else {
-                throw TranscriptionError.apiRequestFailed("Invalid response")
+            let outputPipe = Pipe()
+            let errorPipe = Pipe()
+            process.standardOutput = outputPipe
+            process.standardError = errorPipe
+
+            updateProgress(0.3)
+
+            try process.run()
+            process.waitUntilExit()
+
+            updateProgress(0.8)
+
+            _ = outputPipe.fileHandleForReading.readDataToEndOfFile()
+            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+
+            guard process.terminationStatus == 0 else {
+                let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
+                throw TranscriptionError.apiRequestFailed("Whisper CLI failed with status \(process.terminationStatus): \(errorMessage)")
             }
 
-            guard (200...299).contains(httpResponse.statusCode) else {
-                let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-                throw TranscriptionError.apiRequestFailed("API returned status \(httpResponse.statusCode): \(errorMessage)")
-            }
+            updateProgress(0.9)
 
-            // Parse response
-            return try parseTranscriptionResponse(data, includeTimestamps: includeTimestamps)
+            // Parse JSON output file
+            let jsonURL = audioURL.deletingPathExtension().appendingPathExtension("json")
+            return try parseWhisperJSONOutput(jsonURL: jsonURL, includeTimestamps: includeTimestamps)
 
         } catch {
             if attempt < maxRetries {
                 // Exponential backoff
                 let delay = pow(2.0, Double(attempt))
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                return try await performRequestWithRetry(request: request, includeTimestamps: includeTimestamps, attempt: attempt + 1)
+                return try await executeWhisperCLI(arguments: arguments, includeTimestamps: includeTimestamps, audioURL: audioURL, attempt: attempt + 1)
             }
             throw TranscriptionError.apiRequestFailed(error.localizedDescription)
         }
     }
 
-    private func parseTranscriptionResponse(_ data: Data, includeTimestamps: Bool) throws -> Transcript {
-        struct WhisperResponse: Codable {
-            let text: String
-            let segments: [WhisperSegment]?
-            let language: String?
-        }
+    private func parseWhisperJSONOutput(jsonURL: URL, includeTimestamps: Bool) throws -> Transcript {
+        struct WhisperCLIResponse: Codable {
+            let systeminfo: String?
+            let model: ModelInfo?
+            let params: ParamsInfo?
+            let result: ResultInfo?
+            let transcription: [TranscriptionSegment]?
 
-        struct WhisperSegment: Codable {
-            let text: String
-            let start: Double
-            let end: Double
-            let avgLogprob: Double?
+            struct ModelInfo: Codable {
+                let type: String?
+                let multilingual: Bool?
+                let vocab: Int?
+                let audio: AudioInfo?
 
-            enum CodingKeys: String, CodingKey {
-                case text, start, end
-                case avgLogprob = "avg_logprob"
-            }
-        }
-
-        let decoder = JSONDecoder()
-        do {
-            let response = try decoder.decode(WhisperResponse.self, from: data)
-
-            let segments: [TranscriptSegment]
-            if includeTimestamps, let whisperSegments = response.segments {
-                segments = whisperSegments.map { segment in
-                    // Convert log probability to confidence (approximate)
-                    let confidence = segment.avgLogprob.map { exp($0) } ?? 0.9
-                    return TranscriptSegment(
-                        text: segment.text,
-                        startTime: segment.start,
-                        endTime: segment.end,
-                        confidence: max(0.0, min(1.0, confidence))
-                    )
+                struct AudioInfo: Codable {
+                    let ctx: Int?
+                    let state: Int?
+                    let head: Int?
+                    let layer: Int?
                 }
-            } else {
-                segments = []
             }
 
-            return Transcript(
-                text: response.text,
-                segments: segments,
-                language: response.language,
-                confidence: segments.isEmpty ? 0.9 : segments.map { $0.confidence }.reduce(0, +) / Double(segments.count)
-            )
+            struct ParamsInfo: Codable {
+                let language: String?
+                let translate: Bool?
+            }
 
-        } catch {
-            throw TranscriptionError.apiRequestFailed("Failed to parse response: \(error.localizedDescription)")
+            struct ResultInfo: Codable {
+                let language: String?
+            }
+
+            struct TranscriptionSegment: Codable {
+                let timestamps: Timestamps?
+                let offsets: Offsets?
+                let text: String
+
+                struct Timestamps: Codable {
+                    let from: String
+                    let to: String
+                }
+
+                struct Offsets: Codable {
+                    let from: Int
+                    let to: Int
+                }
+            }
         }
+
+        guard FileManager.default.fileExists(atPath: jsonURL.path) else {
+            throw TranscriptionError.apiRequestFailed("JSON output file not found at \(jsonURL.path)")
+        }
+
+        let data = try Data(contentsOf: jsonURL)
+        let decoder = JSONDecoder()
+        let response = try decoder.decode(WhisperCLIResponse.self, from: data)
+
+        // Clean up JSON file
+        try? FileManager.default.removeItem(at: jsonURL)
+
+        // Extract full text
+        let fullText = response.transcription?.map { $0.text }.joined(separator: " ") ?? ""
+
+        // Extract segments with timestamps if requested
+        let segments: [TranscriptSegment]
+        if includeTimestamps, let transcriptionSegments = response.transcription {
+            segments = transcriptionSegments.compactMap { segment in
+                guard let offsets = segment.offsets else { return nil }
+                let startTime = Double(offsets.from) / 1000.0  // Convert ms to seconds
+                let endTime = Double(offsets.to) / 1000.0
+
+                return TranscriptSegment(
+                    text: segment.text.trimmingCharacters(in: .whitespaces),
+                    startTime: startTime,
+                    endTime: endTime,
+                    confidence: 0.9  // CLI doesn't provide confidence scores
+                )
+            }
+        } else {
+            segments = []
+        }
+
+        let language = response.result?.language ?? response.params?.language ?? "en"
+
+        return Transcript(
+            text: fullText.trimmingCharacters(in: .whitespaces),
+            segments: segments,
+            language: language,
+            confidence: 0.9
+        )
     }
 
     // MARK: - Progress Tracking
