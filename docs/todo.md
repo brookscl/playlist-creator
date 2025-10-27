@@ -101,29 +101,29 @@
 - [x] Ensure robust error handling for network issues
 
 ### 2.3: Audio Extraction from Video Files
-- [ ] Write tests first for audio extraction logic using test audio/video files (25+ tests)
-- [ ] Create AudioExtractionService using AVFoundation
-- [ ] Extract audio from video files (mp4, mov, avi, etc.)
-- [ ] Convert audio to standard format (WAV or MP3)
-- [ ] Handle various video codecs and audio formats
-- [ ] Add progress tracking for extraction process
-- [ ] Implement proper cleanup of intermediate files
-- [ ] Integrate with existing FileUploadService
-- [ ] Use AVAssetExportSession for extraction
-- [ ] Support common video formats
-- [ ] Normalize audio output format
-- [ ] Handle extraction errors gracefully
-- [ ] Maintain file metadata when possible
-- [ ] Test audio extraction from various video formats
-- [ ] Test progress tracking during extraction
-- [ ] Test error handling for unsupported formats
-- [ ] Test file cleanup verification
-- [ ] Test integration with existing services
-- [ ] Test performance with large files
-- [ ] Update progress display to show extraction phase
-- [ ] Handle longer processing times for video files
-- [ ] Display appropriate status messages
-- [ ] Add error feedback for extraction failures
+- [x] Write tests first for audio extraction logic using test audio/video files (31 tests implemented)
+- [x] Create AudioExtractionService using AVFoundation (integrated into FileUploadService)
+- [x] Extract audio from video files (mp4, mov, avi, etc.)
+- [x] Convert audio to standard format (M4A)
+- [x] Handle various video codecs and audio formats
+- [x] Add progress tracking for extraction process
+- [x] Implement proper cleanup of intermediate files
+- [x] Integrate with existing FileUploadService
+- [x] Use AVAssetExportSession for extraction
+- [x] Support common video formats (mp4, mov, avi, mkv, webm, m4v)
+- [x] Normalize audio output format
+- [x] Handle extraction errors gracefully
+- [x] Maintain file metadata when possible
+- [x] Test audio extraction from various video formats
+- [x] Test progress tracking during extraction
+- [x] Test error handling for unsupported formats
+- [x] Test file cleanup verification
+- [x] Test integration with existing services
+- [x] Test performance with large files
+- [x] Update progress display to show extraction phase
+- [x] Handle longer processing times for video files
+- [x] Display appropriate status messages
+- [x] Add error feedback for extraction failures
 
 ## Transcription Week (Week 3)
 

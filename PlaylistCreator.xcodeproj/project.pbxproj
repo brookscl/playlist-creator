@@ -50,6 +50,7 @@
 		E95A597DE5BD4DD78670E596 /* URLDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A3E0564ACB477091D44BB2 /* URLDownloader.swift */; };
 		25466388B0B342B4A4B63BBB /* URLValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B7903D978B49E087D84DCF /* URLValidatorTests.swift */; };
 		8F21E05879EF420B885BE77D /* URLDownloaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642E261CAD4C4EE09A2CDD35 /* URLDownloaderTests.swift */; };
+		1B7897A798D94F92AA57094C /* AudioExtractionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEB6592203043408422FF7B /* AudioExtractionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +111,7 @@
 		77A3E0564ACB477091D44BB2 /* URLDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLDownloader.swift; sourceTree = "<group>"; };
 		F5B7903D978B49E087D84DCF /* URLValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLValidatorTests.swift; sourceTree = "<group>"; };
 		642E261CAD4C4EE09A2CDD35 /* URLDownloaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLDownloaderTests.swift; sourceTree = "<group>"; };
+		7CEB6592203043408422FF7B /* AudioExtractionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioExtractionTests.swift; path = PlaylistCreatorTests/Services/AudioExtractionTests.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -345,6 +347,7 @@
 			files = (
 				F6198026B4921E8B2E3A0C34 /* AudioProcessorTests.swift in Sources */,
 				0849A1F2F661A302A025A792 /* FileUploadServiceTests.swift in Sources */,
+				1B7897A798D94F92AA57094C /* AudioExtractionTests.swift in Sources */,
 				79E54C9955A566E87DDAB06A /* MatchStatusTests.swift in Sources */,
 				2AFC848AABF3969E415F3ADC /* MatchedSongTests.swift in Sources */,
 				8D93B251CF280D9499502E55 /* MusicExtractorTests.swift in Sources */,
