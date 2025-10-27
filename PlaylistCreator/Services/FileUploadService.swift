@@ -275,40 +275,78 @@ class FileUploadService: AudioProcessor {
     func normalizeAudioFormat(_ audioURL: URL) async throws -> URL {
         updateProgress(0.0)
 
+        // Use AVAssetReader/Writer for proper format conversion to WAV
         let asset = AVAsset(url: audioURL)
 
-        // Use WAV format for compatibility with whisper-cli (supports: flac, mp3, ogg, wav)
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
-            throw AudioProcessingError.normalizationFailed("Failed to create normalization export session")
+        guard let assetReader = try? AVAssetReader(asset: asset) else {
+            throw AudioProcessingError.normalizationFailed("Failed to create asset reader")
         }
 
-        updateProgress(0.3)
+        guard let audioTrack = try? await asset.loadTracks(withMediaType: .audio).first else {
+            throw AudioProcessingError.normalizationFailed("No audio track found")
+        }
 
-        // Configure for WAV output (compatible with whisper-cli)
+        updateProgress(0.2)
+
+        // Configure reader output
+        let readerOutputSettings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsFloatKey: false,
+            AVLinearPCMIsBigEndianKey: false,
+            AVSampleRateKey: 16000,
+            AVNumberOfChannelsKey: 1
+        ]
+
+        let readerOutput = AVAssetReaderTrackOutput(track: audioTrack, outputSettings: readerOutputSettings)
+        assetReader.add(readerOutput)
+
+        updateProgress(0.4)
+
+        // Configure writer
         let outputURL = temporaryDirectory.appendingPathComponent("\(UUID().uuidString)_normalized.wav")
-        exportSession.outputURL = outputURL
-        exportSession.outputFileType = .wav
-        
-        updateProgress(0.5)
-        
-        // Perform normalization export
-        await exportSession.export()
-        
-        updateProgress(0.9)
-        
-        switch exportSession.status {
-        case .completed:
-            temporaryFiles.append(outputURL)
-            updateProgress(1.0)
-            return outputURL
-        case .failed:
-            let errorMessage = exportSession.error?.localizedDescription ?? "Unknown normalization error"
-            throw AudioProcessingError.normalizationFailed(errorMessage)
-        case .cancelled:
-            throw AudioProcessingError.normalizationFailed("Normalization was cancelled")
-        default:
-            throw AudioProcessingError.normalizationFailed("Normalization failed with status: \(exportSession.status.rawValue)")
+
+        guard let assetWriter = try? AVAssetWriter(outputURL: outputURL, fileType: .wav) else {
+            throw AudioProcessingError.normalizationFailed("Failed to create asset writer")
         }
+
+        let writerInput = AVAssetWriterInput(mediaType: .audio, outputSettings: readerOutputSettings)
+        assetWriter.add(writerInput)
+
+        updateProgress(0.6)
+
+        // Start reading and writing
+        assetWriter.startWriting()
+        assetWriter.startSession(atSourceTime: .zero)
+        assetReader.startReading()
+
+        writerInput.requestMediaDataWhenReady(on: DispatchQueue(label: "audioNormalization")) {
+            while writerInput.isReadyForMoreMediaData {
+                guard let sampleBuffer = readerOutput.copyNextSampleBuffer() else {
+                    writerInput.markAsFinished()
+                    break
+                }
+                writerInput.append(sampleBuffer)
+            }
+        }
+
+        // Wait for completion
+        while assetWriter.status == .writing {
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
+        }
+
+        updateProgress(0.9)
+
+        await assetWriter.finishWriting()
+
+        guard assetWriter.status == .completed else {
+            let errorMessage = assetWriter.error?.localizedDescription ?? "Unknown normalization error"
+            throw AudioProcessingError.normalizationFailed(errorMessage)
+        }
+
+        temporaryFiles.append(outputURL)
+        updateProgress(1.0)
+        return outputURL
     }
     
     // MARK: - File Validation

@@ -1,0 +1,521 @@
+{
+	"systeminfo": "WHISPER : COREML = 0 | OPENVINO = 0 | Metal : EMBED_LIBRARY = 1 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | DOTPROD = 1 | ACCELERATE = 1 | REPACK = 1 | ",
+	"model": {
+		"type": "large",
+		"multilingual": true,
+		"vocab": 51866,
+		"audio": {
+			"ctx": 1500,
+			"state": 1280,
+			"head": 20,
+			"layer": 32
+		},
+		"text": {
+			"ctx": 448,
+			"state": 1280,
+			"head": 20,
+			"layer": 4
+		},
+		"mels": 128,
+		"ftype": 7
+	},
+	"params": {
+		"model": "/Users/chrisbrooks/bin/ggml-large-v3-turbo-q8_0.bin",
+		"language": "en",
+		"translate": false
+	},
+	"result": {
+		"language": "en"
+	},
+	"transcription": [
+		{
+			"timestamps": {
+				"from": "00:00:00,000",
+				"to": "00:00:14,000"
+			},
+			"offsets": {
+				"from": 0,
+				"to": 14000
+			},
+			"text": " \"Wish You Were Here\" by Pink Floyd, \"Here Comes the Sun\" by The Beatles, and \"Thirteen\" by the band Big Star.",
+			"tokens": [
+				{
+					"text": "[_BEG_]",
+					"timestamps": {
+						"from": "00:00:00,000",
+						"to": "00:00:00,000"
+					},
+					"offsets": {
+						"from": 0,
+						"to": 0
+					},
+					"id": 50365,
+					"p": 0.463388,
+					"t_dtw": -1
+				},
+				{
+					"text": " \"",
+					"timestamps": {
+						"from": "00:00:00,040",
+						"to": "00:00:00,140"
+					},
+					"offsets": {
+						"from": 40,
+						"to": 140
+					},
+					"id": 503,
+					"p": 0.165987,
+					"t_dtw": -1
+				},
+				{
+					"text": "W",
+					"timestamps": {
+						"from": "00:00:00,140",
+						"to": "00:00:00,280"
+					},
+					"offsets": {
+						"from": 140,
+						"to": 280
+					},
+					"id": 54,
+					"p": 0.946345,
+					"t_dtw": -1
+				},
+				{
+					"text": "ish",
+					"timestamps": {
+						"from": "00:00:00,280",
+						"to": "00:00:00,700"
+					},
+					"offsets": {
+						"from": 280,
+						"to": 700
+					},
+					"id": 742,
+					"p": 0.984042,
+					"t_dtw": -1
+				},
+				{
+					"text": " You",
+					"timestamps": {
+						"from": "00:00:00,700",
+						"to": "00:00:01,120"
+					},
+					"offsets": {
+						"from": 700,
+						"to": 1120
+					},
+					"id": 509,
+					"p": 0.885292,
+					"t_dtw": -1
+				},
+				{
+					"text": " Were",
+					"timestamps": {
+						"from": "00:00:01,120",
+						"to": "00:00:01,690"
+					},
+					"offsets": {
+						"from": 1120,
+						"to": 1690
+					},
+					"id": 12448,
+					"p": 0.988558,
+					"t_dtw": -1
+				},
+				{
+					"text": " Here",
+					"timestamps": {
+						"from": "00:00:01,880",
+						"to": "00:00:02,260"
+					},
+					"offsets": {
+						"from": 1880,
+						"to": 2260
+					},
+					"id": 1692,
+					"p": 0.994088,
+					"t_dtw": -1
+				},
+				{
+					"text": "\"",
+					"timestamps": {
+						"from": "00:00:02,260",
+						"to": "00:00:02,400"
+					},
+					"offsets": {
+						"from": 2260,
+						"to": 2400
+					},
+					"id": 1,
+					"p": 0.895392,
+					"t_dtw": -1
+				},
+				{
+					"text": " by",
+					"timestamps": {
+						"from": "00:00:02,400",
+						"to": "00:00:02,680"
+					},
+					"offsets": {
+						"from": 2400,
+						"to": 2680
+					},
+					"id": 538,
+					"p": 0.983812,
+					"t_dtw": -1
+				},
+				{
+					"text": " Pink",
+					"timestamps": {
+						"from": "00:00:02,680",
+						"to": "00:00:03,210"
+					},
+					"offsets": {
+						"from": 2680,
+						"to": 3210
+					},
+					"id": 17118,
+					"p": 0.977527,
+					"t_dtw": -1
+				},
+				{
+					"text": " Floyd",
+					"timestamps": {
+						"from": "00:00:03,270",
+						"to": "00:00:04,000"
+					},
+					"offsets": {
+						"from": 3270,
+						"to": 4000
+					},
+					"id": 28494,
+					"p": 0.991358,
+					"t_dtw": -1
+				},
+				{
+					"text": ",",
+					"timestamps": {
+						"from": "00:00:04,000",
+						"to": "00:00:04,210"
+					},
+					"offsets": {
+						"from": 4000,
+						"to": 4210
+					},
+					"id": 11,
+					"p": 0.402222,
+					"t_dtw": -1
+				},
+				{
+					"text": " \"",
+					"timestamps": {
+						"from": "00:00:04,210",
+						"to": "00:00:04,310"
+					},
+					"offsets": {
+						"from": 4210,
+						"to": 4310
+					},
+					"id": 503,
+					"p": 0.677694,
+					"t_dtw": -1
+				},
+				{
+					"text": "Here",
+					"timestamps": {
+						"from": "00:00:04,310",
+						"to": "00:00:04,660"
+					},
+					"offsets": {
+						"from": 4310,
+						"to": 4660
+					},
+					"id": 17685,
+					"p": 0.990575,
+					"t_dtw": -1
+				},
+				{
+					"text": " Comes",
+					"timestamps": {
+						"from": "00:00:05,120",
+						"to": "00:00:05,250"
+					},
+					"offsets": {
+						"from": 5120,
+						"to": 5250
+					},
+					"id": 47290,
+					"p": 0.984357,
+					"t_dtw": -1
+				},
+				{
+					"text": " the",
+					"timestamps": {
+						"from": "00:00:05,250",
+						"to": "00:00:05,560"
+					},
+					"offsets": {
+						"from": 5250,
+						"to": 5560
+					},
+					"id": 264,
+					"p": 0.790628,
+					"t_dtw": -1
+				},
+				{
+					"text": " Sun",
+					"timestamps": {
+						"from": "00:00:05,560",
+						"to": "00:00:05,870"
+					},
+					"offsets": {
+						"from": 5560,
+						"to": 5870
+					},
+					"id": 6163,
+					"p": 0.959202,
+					"t_dtw": -1
+				},
+				{
+					"text": "\"",
+					"timestamps": {
+						"from": "00:00:05,870",
+						"to": "00:00:06,000"
+					},
+					"offsets": {
+						"from": 5870,
+						"to": 6000
+					},
+					"id": 1,
+					"p": 0.906,
+					"t_dtw": -1
+				},
+				{
+					"text": " by",
+					"timestamps": {
+						"from": "00:00:06,000",
+						"to": "00:00:06,440"
+					},
+					"offsets": {
+						"from": 6000,
+						"to": 6440
+					},
+					"id": 538,
+					"p": 0.936247,
+					"t_dtw": -1
+				},
+				{
+					"text": " The",
+					"timestamps": {
+						"from": "00:00:06,660",
+						"to": "00:00:07,200"
+					},
+					"offsets": {
+						"from": 6660,
+						"to": 7200
+					},
+					"id": 440,
+					"p": 0.751116,
+					"t_dtw": -1
+				},
+				{
+					"text": " Beatles",
+					"timestamps": {
+						"from": "00:00:07,200",
+						"to": "00:00:07,690"
+					},
+					"offsets": {
+						"from": 7200,
+						"to": 7690
+					},
+					"id": 38376,
+					"p": 0.959812,
+					"t_dtw": -1
+				},
+				{
+					"text": ",",
+					"timestamps": {
+						"from": "00:00:07,920",
+						"to": "00:00:08,390"
+					},
+					"offsets": {
+						"from": 7920,
+						"to": 8390
+					},
+					"id": 11,
+					"p": 0.685463,
+					"t_dtw": -1
+				},
+				{
+					"text": " and",
+					"timestamps": {
+						"from": "00:00:08,640",
+						"to": "00:00:09,000"
+					},
+					"offsets": {
+						"from": 8640,
+						"to": 9000
+					},
+					"id": 293,
+					"p": 0.588001,
+					"t_dtw": -1
+				},
+				{
+					"text": " \"",
+					"timestamps": {
+						"from": "00:00:09,000",
+						"to": "00:00:09,200"
+					},
+					"offsets": {
+						"from": 9000,
+						"to": 9200
+					},
+					"id": 503,
+					"p": 0.913853,
+					"t_dtw": -1
+				},
+				{
+					"text": "Th",
+					"timestamps": {
+						"from": "00:00:09,200",
+						"to": "00:00:09,580"
+					},
+					"offsets": {
+						"from": 9200,
+						"to": 9580
+					},
+					"id": 2434,
+					"p": 0.511632,
+					"t_dtw": -1
+				},
+				{
+					"text": "irteen",
+					"timestamps": {
+						"from": "00:00:09,580",
+						"to": "00:00:10,540"
+					},
+					"offsets": {
+						"from": 9580,
+						"to": 10540
+					},
+					"id": 27114,
+					"p": 0.990442,
+					"t_dtw": -1
+				},
+				{
+					"text": "\"",
+					"timestamps": {
+						"from": "00:00:10,950",
+						"to": "00:00:11,000"
+					},
+					"offsets": {
+						"from": 10950,
+						"to": 11000
+					},
+					"id": 1,
+					"p": 0.985897,
+					"t_dtw": -1
+				},
+				{
+					"text": " by",
+					"timestamps": {
+						"from": "00:00:11,000",
+						"to": "00:00:11,040"
+					},
+					"offsets": {
+						"from": 11000,
+						"to": 11040
+					},
+					"id": 538,
+					"p": 0.751392,
+					"t_dtw": -1
+				},
+				{
+					"text": " the",
+					"timestamps": {
+						"from": "00:00:11,040",
+						"to": "00:00:11,230"
+					},
+					"offsets": {
+						"from": 11040,
+						"to": 11230
+					},
+					"id": 264,
+					"p": 0.890825,
+					"t_dtw": -1
+				},
+				{
+					"text": " band",
+					"timestamps": {
+						"from": "00:00:11,280",
+						"to": "00:00:11,830"
+					},
+					"offsets": {
+						"from": 11280,
+						"to": 11830
+					},
+					"id": 4116,
+					"p": 0.971381,
+					"t_dtw": -1
+				},
+				{
+					"text": " Big",
+					"timestamps": {
+						"from": "00:00:12,020",
+						"to": "00:00:12,840"
+					},
+					"offsets": {
+						"from": 12020,
+						"to": 12840
+					},
+					"id": 5429,
+					"p": 0.840254,
+					"t_dtw": -1
+				},
+				{
+					"text": " Star",
+					"timestamps": {
+						"from": "00:00:12,840",
+						"to": "00:00:13,980"
+					},
+					"offsets": {
+						"from": 12840,
+						"to": 13980
+					},
+					"id": 5705,
+					"p": 0.949069,
+					"t_dtw": -1
+				},
+				{
+					"text": ".",
+					"timestamps": {
+						"from": "00:00:14,000",
+						"to": "00:00:14,000"
+					},
+					"offsets": {
+						"from": 14000,
+						"to": 14000
+					},
+					"id": 13,
+					"p": 0.857543,
+					"t_dtw": -1
+				},
+				{
+					"text": "[_TT_700]",
+					"timestamps": {
+						"from": "00:00:14,000",
+						"to": "00:00:14,000"
+					},
+					"offsets": {
+						"from": 14000,
+						"to": 14000
+					},
+					"id": 51065,
+					"p": 0.965399,
+					"t_dtw": -1
+				}
+			]
+		}
+	]
+}
