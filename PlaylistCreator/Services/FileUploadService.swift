@@ -107,19 +107,38 @@ class FileUploadService: AudioProcessor {
             audioURL = tempURL
             updateProgress(0.6)
         }
-        
-        // Normalize audio format
-        let normalizedURL = try await normalizeAudioFormat(audioURL)
-        updateProgress(0.9)
+
+        // Normalize audio format only if needed (whisper-cli supports: mp3, flac, ogg, wav)
+        let normalizedURL: URL
+        let fileExtension = audioURL.pathExtension.lowercased()
+        if ["mp3", "flac", "ogg", "wav"].contains(fileExtension) {
+            // Already in compatible format, no normalization needed
+            normalizedURL = audioURL
+            updateProgress(0.9)
+        } else {
+            // Need to convert to compatible format
+            normalizedURL = try await normalizeAudioFormat(audioURL)
+            updateProgress(0.9)
+        }
         
         // Get audio duration
         let duration = try await getAudioDuration(normalizedURL)
         updateProgress(1.0)
-        
+
+        // Determine output format
+        let outputFormat: AudioFormat
+        switch normalizedURL.pathExtension.lowercased() {
+        case "mp3": outputFormat = .mp3
+        case "wav": outputFormat = .wav
+        case "flac": outputFormat = .wav // Map flac to wav for consistency
+        case "ogg": outputFormat = .wav // Map ogg to wav for consistency
+        default: outputFormat = .wav
+        }
+
         return ProcessedAudio(
             url: normalizedURL,
             duration: duration,
-            format: .wav,
+            format: outputFormat,
             sampleRate: 16000
         )
     }
@@ -173,18 +192,37 @@ class FileUploadService: AudioProcessor {
             updateProgress(0.6)
         }
 
-        // Normalize audio format
-        let normalizedURL = try await normalizeAudioFormat(audioURL)
-        updateProgress(0.9)
+        // Normalize audio format only if needed (whisper-cli supports: mp3, flac, ogg, wav)
+        let normalizedURL: URL
+        let fileExtension = audioURL.pathExtension.lowercased()
+        if ["mp3", "flac", "ogg", "wav"].contains(fileExtension) {
+            // Already in compatible format, no normalization needed
+            normalizedURL = audioURL
+            updateProgress(0.9)
+        } else {
+            // Need to convert to compatible format
+            normalizedURL = try await normalizeAudioFormat(audioURL)
+            updateProgress(0.9)
+        }
 
         // Get audio duration
         let duration = try await getAudioDuration(normalizedURL)
         updateProgress(1.0)
 
+        // Determine output format
+        let outputFormat: AudioFormat
+        switch normalizedURL.pathExtension.lowercased() {
+        case "mp3": outputFormat = .mp3
+        case "wav": outputFormat = .wav
+        case "flac": outputFormat = .wav // Map flac to wav for consistency
+        case "ogg": outputFormat = .wav // Map ogg to wav for consistency
+        default: outputFormat = .wav
+        }
+
         return ProcessedAudio(
             url: normalizedURL,
             duration: duration,
-            format: .wav,
+            format: outputFormat,
             sampleRate: 16000
         )
     }
