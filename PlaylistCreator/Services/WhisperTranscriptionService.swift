@@ -18,7 +18,8 @@ class WhisperTranscriptionService: Transcriber {
 
     // MARK: - Initialization
 
-    init(whisperCLIPath: String = "/opt/homebrew/bin/whisper-cli", modelPath: String? = nil) {
+    init(whisperCLIPath: String = "/opt/homebrew/bin/whisper-cli",
+         modelPath: String? = "/Users/chrisbrooks/bin/ggml-large-v3-turbo-q8_0.bin") {
         self.whisperCLIPath = whisperCLIPath
         self.modelPath = modelPath
     }
