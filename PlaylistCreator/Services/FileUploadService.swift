@@ -191,26 +191,26 @@ class FileUploadService: AudioProcessor {
     
     func extractAudioFromVideo(_ videoURL: URL) async throws -> URL {
         updateProgress(0.0)
-        
+
         let asset = AVAsset(url: videoURL)
-        
+
         // Check if asset has audio tracks
         let audioTracks = try await asset.loadTracks(withMediaType: .audio)
         guard !audioTracks.isEmpty else {
             throw AudioProcessingError.extractionFailed("No audio tracks found in video")
         }
-        
+
         updateProgress(0.3)
-        
-        // Create export session
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+
+        // Create export session - use passthrough for WAV compatibility
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
             throw AudioProcessingError.extractionFailed("Failed to create export session")
         }
-        
-        // Configure output
-        let outputURL = temporaryDirectory.appendingPathComponent("\(UUID().uuidString).m4a")
+
+        // Configure output as WAV for whisper-cli compatibility
+        let outputURL = temporaryDirectory.appendingPathComponent("\(UUID().uuidString).wav")
         exportSession.outputURL = outputURL
-        exportSession.outputFileType = .m4a
+        exportSession.outputFileType = .wav
         
         updateProgress(0.5)
         
@@ -236,19 +236,20 @@ class FileUploadService: AudioProcessor {
     
     func normalizeAudioFormat(_ audioURL: URL) async throws -> URL {
         updateProgress(0.0)
-        
+
         let asset = AVAsset(url: audioURL)
-        
-        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+
+        // Use WAV format for compatibility with whisper-cli (supports: flac, mp3, ogg, wav)
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
             throw AudioProcessingError.normalizationFailed("Failed to create normalization export session")
         }
-        
+
         updateProgress(0.3)
-        
-        // Configure for normalized output
-        let outputURL = temporaryDirectory.appendingPathComponent("\(UUID().uuidString)_normalized.m4a")
+
+        // Configure for WAV output (compatible with whisper-cli)
+        let outputURL = temporaryDirectory.appendingPathComponent("\(UUID().uuidString)_normalized.wav")
         exportSession.outputURL = outputURL
-        exportSession.outputFileType = .m4a
+        exportSession.outputFileType = .wav
         
         updateProgress(0.5)
         
