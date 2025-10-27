@@ -25,37 +25,49 @@ struct FileValidation {
 }
 
 class FileUploadService: AudioProcessor {
-    
+
     // MARK: - Properties
-    
+
     private let supportedAudioFormats = Set([
         "mp3", "wav", "m4a", "aac", "flac", "ogg"
     ])
-    
+
     private let supportedVideoFormats = Set([
         "mp4", "mov", "avi", "mkv", "webm", "m4v"
     ])
-    
+
     private var temporaryFiles: [URL] = []
     private let temporaryDirectory: URL
-    
+    private let urlValidator = URLValidator()
+    private let urlDownloader: URLDownloader
+
     var progressCallback: ((Double) -> Void)?
     
     // MARK: - Initialization
-    
+
     init() {
         // Create a dedicated temporary directory for this service
         let tempDir = FileManager.default.temporaryDirectory
             .appendingPathComponent("PlaylistCreator")
             .appendingPathComponent(UUID().uuidString)
-        
+
         self.temporaryDirectory = tempDir
-        
+        self.urlDownloader = URLDownloader()
+
         // Create the directory if it doesn't exist
         try? FileManager.default.createDirectory(
             at: temporaryDirectory,
             withIntermediateDirectories: true
         )
+
+        // Setup URL downloader progress callback
+        setupURLDownloaderProgress()
+    }
+
+    private func setupURLDownloaderProgress() {
+        urlDownloader.progressCallback = { [weak self] progress in
+            self?.progressCallback?(progress)
+        }
     }
     
     deinit {
@@ -113,8 +125,68 @@ class FileUploadService: AudioProcessor {
     }
     
     func processURL(_ url: URL) async throws -> ProcessedAudio {
-        // For file uploads, we treat URLs as local file paths
-        return try await processFileUpload(url)
+        updateProgress(0.0)
+
+        // Check if it's a local file URL
+        if url.isFileURL {
+            return try await processFileUpload(url)
+        }
+
+        // Validate URL type
+        let urlType = urlValidator.validateURL(url)
+
+        guard urlType != .unsupported else {
+            throw AudioProcessingError.unsupportedFormat("URL type not supported")
+        }
+
+        updateProgress(0.1)
+
+        // Handle YouTube URLs - would need youtube-dl or similar
+        if urlType == .youtube {
+            throw AudioProcessingError.notImplemented // Will implement in future
+        }
+
+        // Handle podcast RSS feeds - would need RSS parser
+        if urlType == .podcast {
+            throw AudioProcessingError.notImplemented // Will implement in future
+        }
+
+        // Download direct audio/video files
+        updateProgress(0.2)
+        let downloadedURL = try await urlDownloader.download(from: url)
+        temporaryFiles.append(downloadedURL)
+
+        updateProgress(0.5)
+
+        // Process the downloaded file
+        return try await processDownloadedFile(downloadedURL, urlType: urlType)
+    }
+
+    private func processDownloadedFile(_ url: URL, urlType: URLType) async throws -> ProcessedAudio {
+        // Extract audio if it's a video file
+        let audioURL: URL
+        if urlType == .directVideo {
+            audioURL = try await extractAudioFromVideo(url)
+            updateProgress(0.7)
+        } else {
+            audioURL = url
+            updateProgress(0.6)
+        }
+
+        // Normalize audio format
+        let normalizedURL = try await normalizeAudioFormat(audioURL)
+        updateProgress(0.9)
+
+        // Get audio duration
+        let duration = try await getAudioDuration(normalizedURL)
+        updateProgress(1.0)
+
+        return ProcessedAudio(
+            url: normalizedURL,
+            duration: duration,
+            format: .wav,
+            sampleRate: 16000
+        )
     }
     
     func extractAudioFromVideo(_ videoURL: URL) async throws -> URL {

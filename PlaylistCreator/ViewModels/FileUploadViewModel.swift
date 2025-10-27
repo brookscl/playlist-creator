@@ -34,22 +34,47 @@ class FileUploadViewModel: ObservableObject {
         errorMessage = nil
         currentFileName = url.lastPathComponent
         progress = 0.0
-        
+
         do {
             let processedAudio = try await fileUploadService.processFileUpload(url)
-            
+
             // Success
             hasProcessedFile = true
             processedFileName = currentFileName
             statusMessage = "Processing complete!"
-            
+
             // Store processed audio result for next step
             // TODO: Pass to next stage of pipeline
-            
+
         } catch {
             setError("Processing failed: \(error.localizedDescription)")
         }
-        
+
+        isProcessing = false
+    }
+
+    func processURL(_ url: URL) async {
+        isProcessing = true
+        hasProcessedFile = false
+        errorMessage = nil
+        currentFileName = url.absoluteString
+        progress = 0.0
+
+        do {
+            let processedAudio = try await fileUploadService.processURL(url)
+
+            // Success
+            hasProcessedFile = true
+            processedFileName = url.lastPathComponent.isEmpty ? "Downloaded file" : url.lastPathComponent
+            statusMessage = "Processing complete!"
+
+            // Store processed audio result for next step
+            // TODO: Pass to next stage of pipeline
+
+        } catch {
+            setError("Processing failed: \(error.localizedDescription)")
+        }
+
         isProcessing = false
     }
     

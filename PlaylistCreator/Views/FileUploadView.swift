@@ -5,17 +5,31 @@ struct FileUploadView: View {
     @StateObject private var viewModel = FileUploadViewModel()
     @State private var isDragOver = false
     @State private var showingFilePicker = false
-    
+    @State private var urlInputText = ""
+    @State private var showURLInput = false
+
     var body: some View {
         VStack(spacing: 20) {
+            // Toggle between file and URL input
+            if !viewModel.isProcessing && !viewModel.hasProcessedFile {
+                Picker("Input Method", selection: $showURLInput) {
+                    Text("File Upload").tag(false)
+                    Text("URL Input").tag(true)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+            }
+
             if viewModel.isProcessing {
                 processingView
             } else if viewModel.hasProcessedFile {
                 successView
+            } else if showURLInput {
+                urlInputAreaView
             } else {
                 uploadAreaView
             }
-            
+
             if let errorMessage = viewModel.errorMessage {
                 errorView(message: errorMessage)
             }
@@ -66,7 +80,90 @@ struct FileUploadView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: isDragOver)
     }
-    
+
+    private var urlInputAreaView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "link.circle")
+                .font(.system(size: 48))
+                .foregroundColor(.accentColor)
+
+            Text("Enter URL")
+                .font(.headline)
+
+            Text("YouTube, Podcast, or Direct Audio/Video Link")
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+            TextField("https://youtube.com/watch?v=...", text: $urlInputText)
+                .textFieldStyle(.roundedBorder)
+                .padding(.horizontal)
+                .onSubmit {
+                    processURL()
+                }
+
+            HStack(spacing: 12) {
+                if !urlInputText.isEmpty {
+                    Button("Clear") {
+                        urlInputText = ""
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                Button("Process URL") {
+                    processURL()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(urlInputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+
+            if !urlInputText.isEmpty {
+                urlValidationIndicator
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: 200)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.secondary.opacity(0.1))
+        )
+    }
+
+    private var urlValidationIndicator: some View {
+        HStack(spacing: 8) {
+            let validator = URLValidator()
+            let isValid = validator.isValidURLString(urlInputText)
+
+            Image(systemName: isValid ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundColor(isValid ? .green : .orange)
+
+            Text(isValid ? urlTypeDescription : "Invalid URL format")
+                .font(.caption)
+                .foregroundColor(isValid ? .green : .orange)
+        }
+        .padding(.top, 4)
+    }
+
+    private var urlTypeDescription: String {
+        let validator = URLValidator()
+        guard let url = URL(string: validator.normalizeURLString(urlInputText)) else {
+            return "Invalid URL"
+        }
+
+        let urlType = validator.validateURL(url)
+        switch urlType {
+        case .youtube:
+            return "YouTube video detected"
+        case .podcast:
+            return "Podcast/RSS feed detected"
+        case .directAudio:
+            return "Direct audio link detected"
+        case .directVideo:
+            return "Direct video link detected"
+        case .unsupported:
+            return "Unsupported URL type"
+        }
+    }
+
     private var processingView: some View {
         VStack(spacing: 16) {
             ProgressView(value: viewModel.progress)
@@ -182,7 +279,26 @@ struct FileUploadView: View {
             await viewModel.processFile(url)
         }
     }
-    
+
+    private func processURL() {
+        let validator = URLValidator()
+        let normalizedString = validator.normalizeURLString(urlInputText)
+
+        guard let url = URL(string: normalizedString) else {
+            viewModel.setError("Invalid URL format")
+            return
+        }
+
+        guard validator.isValidURLString(normalizedString) else {
+            viewModel.setError("Invalid or unsupported URL")
+            return
+        }
+
+        Task {
+            await viewModel.processURL(url)
+        }
+    }
+
     // MARK: - Configuration
     
     private var allowedFileTypes: [UTType] {

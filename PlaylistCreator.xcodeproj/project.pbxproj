@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -46,6 +46,10 @@
 		D952F6D474F12A6D738400F9 /* Info-minimal.plist in Resources */ = {isa = PBXBuildFile; fileRef = 8426AB5EC6D80857CF1AF4E5 /* Info-minimal.plist */; };
 		EB79CE0451019B91B573A5D4 /* TranscriberTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1424E4A1C869462687C40BF /* TranscriberTests.swift */; };
 		F6198026B4921E8B2E3A0C34 /* AudioProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D6D1EC181E7384062DFDD51 /* AudioProcessorTests.swift */; };
+		FAA53BE18EF64C709CA34639 /* URLValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47D94DD8A5264F388A380364 /* URLValidator.swift */; };
+		E95A597DE5BD4DD78670E596 /* URLDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77A3E0564ACB477091D44BB2 /* URLDownloader.swift */; };
+		25466388B0B342B4A4B63BBB /* URLValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5B7903D978B49E087D84DCF /* URLValidatorTests.swift */; };
+		8F21E05879EF420B885BE77D /* URLDownloaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642E261CAD4C4EE09A2CDD35 /* URLDownloaderTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +106,10 @@
 		F600640A76DD103F63AE1E7F /* AudioProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessor.swift; sourceTree = "<group>"; };
 		F64891A2E2366A35432BB4C3 /* MockMusicExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMusicExtractor.swift; sourceTree = "<group>"; };
 		FEF4A1DC61A85BD6634D0D02 /* Transcriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transcriber.swift; sourceTree = "<group>"; };
+		47D94DD8A5264F388A380364 /* URLValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLValidator.swift; sourceTree = "<group>"; };
+		77A3E0564ACB477091D44BB2 /* URLDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLDownloader.swift; sourceTree = "<group>"; };
+		F5B7903D978B49E087D84DCF /* URLValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLValidatorTests.swift; sourceTree = "<group>"; };
+		642E261CAD4C4EE09A2CDD35 /* URLDownloaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLDownloaderTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -110,6 +118,8 @@
 			children = (
 				F600640A76DD103F63AE1E7F /* AudioProcessor.swift */,
 				C118177ED08BE7C415CDFBDC /* FileUploadService.swift */,
+				47D94DD8A5264F388A380364 /* URLValidator.swift */,
+				77A3E0564ACB477091D44BB2 /* URLDownloader.swift */,
 				9A626FF129AD281B9B2841F1 /* MusicExtractor.swift */,
 				50C650A8B370C7FF23722CB1 /* MusicSearcher.swift */,
 				40FBEF3E88D0DFD0740D0029 /* PlaylistCreator.swift */,
@@ -288,7 +298,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					1CAF01452B79E131FCFC1C3D = {
 						DevelopmentTeam = "";
@@ -306,7 +316,6 @@
 			);
 			mainGroup = A4C2D84743973D551F759F53;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -358,6 +367,8 @@
 				3D4F67FF340696C2F40411D3 /* AudioProcessor.swift in Sources */,
 				D8E4BDF411CFDA3985C3CB73 /* ContentView.swift in Sources */,
 				1EECD58E0F20F500D2FA9204 /* FileUploadService.swift in Sources */,
+				FAA53BE18EF64C709CA34639 /* URLValidator.swift in Sources */,
+				E95A597DE5BD4DD78670E596 /* URLDownloader.swift in Sources */,
 				6636D99619ACC61B01EECC0D /* FileUploadView.swift in Sources */,
 				5172D4AA59258E4299C1B637 /* FileUploadViewModel.swift in Sources */,
 				3EECA254588D67BF9BFC3A99 /* MatchStatus.swift in Sources */,
@@ -398,6 +409,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "PlaylistCreator/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -451,9 +463,11 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -516,9 +530,11 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -544,6 +560,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -564,6 +581,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "PlaylistCreator/Preview\\ Content";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
@@ -587,6 +605,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
