@@ -184,8 +184,8 @@ class WhisperTranscriptionService: Transcriber {
 
             updateProgress(0.9)
 
-            // Parse JSON output file
-            let jsonURL = audioURL.deletingPathExtension().appendingPathExtension("json")
+            // Parse JSON output file - whisper-cli appends .json to the full filename
+            let jsonURL = URL(fileURLWithPath: audioURL.path + ".json")
             return try parseWhisperJSONOutput(jsonURL: jsonURL, includeTimestamps: includeTimestamps)
 
         } catch {
