@@ -170,7 +170,16 @@ class WhisperTranscriptionService: Transcriber {
             updateProgress(0.3)
 
             try process.run()
-            process.waitUntilExit()
+
+            // Wait for process to complete asynchronously with progress updates
+            var lastProgress = 0.3
+            while process.isRunning {
+                try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+                // Gradually increase progress while processing
+                lastProgress = min(lastProgress + 0.05, 0.8)
+                updateProgress(lastProgress)
+            }
 
             updateProgress(0.8)
 
