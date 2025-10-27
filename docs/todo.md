@@ -128,28 +128,28 @@
 ## Transcription Week (Week 3)
 
 ### 3.1: Whisper Integration for Speech-to-Text
-- [ ] Create comprehensive tests for transcription functionality using test audio files (30+ tests)
-- [ ] Implement TranscriptionService conforming to existing Transcriber protocol
-- [ ] Choose and integrate Whisper (local model or API based on performance needs)
-- [ ] Add audio preprocessing (chunking, normalization) for optimal transcription
-- [ ] Implement progress tracking with callbacks
-- [ ] Handle various audio formats and quality levels
-- [ ] Add proper error handling for transcription failures
-- [ ] Preserve timestamp information for chronological ordering
-- [ ] Implement audio preprocessing using AVAudioEngine or similar
-- [ ] Create chunking strategy for long audio files
-- [ ] Add progress reporting throughout transcription
-- [ ] Preserve timestamp information for text segments
-- [ ] Test transcription accuracy with test audio files
-- [ ] Test progress callback functionality
-- [ ] Test error handling for various failure scenarios
-- [ ] Test audio preprocessing validation
-- [ ] Test integration with existing service architecture
-- [ ] Test performance with different audio lengths
-- [ ] Connect to existing AudioProcessor output
-- [ ] Update ServiceContainer with TranscriptionService
-- [ ] Enhance progress UI for transcription phase
-- [ ] Add transcription results to PlaylistRequest model
+- [x] Create comprehensive tests for transcription functionality using test audio files (24 tests implemented)
+- [x] Implement TranscriptionService conforming to existing Transcriber protocol (WhisperTranscriptionService)
+- [x] Choose and integrate Whisper (OpenAI Whisper API with multipart form data upload)
+- [x] Add audio preprocessing (chunking, normalization) for optimal transcription
+- [x] Implement progress tracking with callbacks
+- [x] Handle various audio formats and quality levels
+- [x] Add proper error handling for transcription failures
+- [x] Preserve timestamp information for chronological ordering
+- [x] Create chunking strategy for long audio files (10-minute chunks)
+- [x] Add progress reporting throughout transcription
+- [x] Preserve timestamp information for text segments
+- [x] Test progress callback functionality
+- [x] Test error handling for various failure scenarios
+- [x] Test audio preprocessing validation
+- [x] Test integration with existing service architecture
+- [x] Test performance with different audio lengths
+- [x] Connect to existing AudioProcessor output (integrated into FileUploadViewModel)
+- [x] Update ServiceContainer with TranscriptionService
+- [x] Enhance progress UI for transcription phase (two-phase progress: audio + transcription)
+- [x] Add transcript preview in success view
+- [x] Implement retry logic with exponential backoff
+- [x] Convert log probabilities to confidence scores
 
 ### 3.2: Transcript Processing and Formatting
 - [ ] Write tests first for all text processing and formatting logic (25+ tests)

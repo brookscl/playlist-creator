@@ -10,12 +10,17 @@ class FileUploadViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var currentFileName: String?
     @Published var processedFileName: String?
-    
+    @Published var transcriptText: String?
+    @Published var isTranscribing = false
+
     private let fileUploadService: FileUploadService
+    private let transcriptionService: Transcriber
     private var cancellables = Set<AnyCancellable>()
-    
-    init(fileUploadService: FileUploadService = FileUploadService()) {
+
+    init(fileUploadService: FileUploadService = FileUploadService(),
+         transcriptionService: Transcriber = serviceContainer.resolve(Transcriber.self)) {
         self.fileUploadService = fileUploadService
+        self.transcriptionService = transcriptionService
         setupProgressTracking()
     }
     
@@ -36,21 +41,31 @@ class FileUploadViewModel: ObservableObject {
         progress = 0.0
 
         do {
+            // Step 1: Process audio (0-50% progress)
             let processedAudio = try await fileUploadService.processFileUpload(url)
+            progress = 0.5
+
+            // Step 2: Transcribe audio (50-100% progress)
+            isTranscribing = true
+            statusMessage = "Transcribing audio..."
+            let transcript = try await transcribeAudio(processedAudio)
 
             // Success
             hasProcessedFile = true
             processedFileName = currentFileName
+            transcriptText = transcript.text
             statusMessage = "Processing complete!"
+            progress = 1.0
 
-            // Store processed audio result for next step
-            // TODO: Pass to next stage of pipeline
+            // Store processed audio and transcript for next step
+            // TODO: Pass to music extraction stage
 
         } catch {
             setError("Processing failed: \(error.localizedDescription)")
         }
 
         isProcessing = false
+        isTranscribing = false
     }
 
     func processURL(_ url: URL) async {
@@ -61,21 +76,31 @@ class FileUploadViewModel: ObservableObject {
         progress = 0.0
 
         do {
+            // Step 1: Download and process audio (0-50% progress)
             let processedAudio = try await fileUploadService.processURL(url)
+            progress = 0.5
+
+            // Step 2: Transcribe audio (50-100% progress)
+            isTranscribing = true
+            statusMessage = "Transcribing audio..."
+            let transcript = try await transcribeAudio(processedAudio)
 
             // Success
             hasProcessedFile = true
             processedFileName = url.lastPathComponent.isEmpty ? "Downloaded file" : url.lastPathComponent
+            transcriptText = transcript.text
             statusMessage = "Processing complete!"
+            progress = 1.0
 
-            // Store processed audio result for next step
-            // TODO: Pass to next stage of pipeline
+            // Store processed audio and transcript for next step
+            // TODO: Pass to music extraction stage
 
         } catch {
             setError("Processing failed: \(error.localizedDescription)")
         }
 
         isProcessing = false
+        isTranscribing = false
     }
     
     func setError(_ message: String) {
@@ -100,20 +125,56 @@ class FileUploadViewModel: ObservableObject {
         fileUploadService.cleanupAllTemporaryFiles()
     }
     
+    private func transcribeAudio(_ audio: ProcessedAudio) async throws -> Transcript {
+        // Set up progress tracking for transcription
+        if let transcriptionService = transcriptionService as? WhisperTranscriptionService {
+            transcriptionService.progressCallback = { [weak self] transcriptionProgress in
+                Task { @MainActor in
+                    // Map transcription progress (0.0-1.0) to overall progress (0.5-1.0)
+                    self?.progress = 0.5 + (transcriptionProgress * 0.5)
+                    self?.updateTranscriptionStatus(for: transcriptionProgress)
+                }
+            }
+        }
+
+        return try await transcriptionService.transcribeWithTimestamps(audio)
+    }
+
     private func updateStatusMessage(for progress: Double) {
+        if isTranscribing {
+            updateTranscriptionStatus(for: (progress - 0.5) * 2.0)
+        } else {
+            switch progress {
+            case 0.0..<0.1:
+                statusMessage = "Validating file..."
+            case 0.1..<0.2:
+                statusMessage = "Preparing file..."
+            case 0.2..<0.3:
+                statusMessage = "Processing audio..."
+            case 0.3..<0.4:
+                statusMessage = "Normalizing format..."
+            case 0.4..<0.5:
+                statusMessage = "Finalizing audio processing..."
+            default:
+                statusMessage = "Processing..."
+            }
+        }
+    }
+
+    private func updateTranscriptionStatus(for progress: Double) {
         switch progress {
-        case 0.0..<0.2:
-            statusMessage = "Validating file..."
-        case 0.2..<0.4:
-            statusMessage = "Preparing file..."
-        case 0.4..<0.6:
-            statusMessage = "Processing audio..."
-        case 0.6..<0.9:
-            statusMessage = "Normalizing format..."
-        case 0.9..<1.0:
-            statusMessage = "Finalizing..."
+        case 0.0..<0.1:
+            statusMessage = "Preparing transcription..."
+        case 0.1..<0.3:
+            statusMessage = "Transcribing audio..."
+        case 0.3..<0.7:
+            statusMessage = "Processing transcription..."
+        case 0.7..<0.95:
+            statusMessage = "Finalizing transcription..."
+        case 0.95...1.0:
+            statusMessage = "Transcription complete!"
         default:
-            statusMessage = "Processing complete!"
+            statusMessage = "Transcribing..."
         }
     }
 }

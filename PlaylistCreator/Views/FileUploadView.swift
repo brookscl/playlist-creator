@@ -188,29 +188,61 @@ struct FileUploadView: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 48))
                 .foregroundColor(.green)
-            
+
             Text("File processed successfully!")
                 .font(.headline)
-            
+
             if let fileName = viewModel.processedFileName {
                 Text(fileName)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
+            if let transcript = viewModel.transcriptText {
+                transcriptPreviewView(transcript)
+            }
+
             HStack(spacing: 12) {
                 Button("Process Another") {
                     viewModel.reset()
                 }
                 .buttonStyle(.bordered)
-                
+
                 Button("Continue") {
-                    // TODO: Navigate to next step
+                    // TODO: Navigate to next step (music extraction)
                 }
                 .buttonStyle(.borderedProminent)
             }
         }
         .padding()
+    }
+
+    private func transcriptPreviewView(_ text: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "text.quote")
+                    .foregroundColor(.accentColor)
+                Text("Transcript Preview")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Spacer()
+            }
+
+            ScrollView {
+                Text(text)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .textSelection(.enabled)
+            }
+            .frame(maxHeight: 100)
+            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.secondary.opacity(0.1))
+            )
+        }
+        .padding(.vertical, 8)
     }
     
     private func errorView(message: String) -> some View {

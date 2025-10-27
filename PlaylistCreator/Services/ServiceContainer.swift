@@ -42,7 +42,7 @@ class DefaultServiceContainer: ServiceContainer {
     
     func configureProduction() {
         register(AudioProcessor.self) { DefaultAudioProcessor() }
-        register(Transcriber.self) { DefaultTranscriber() }
+        register(Transcriber.self) { WhisperTranscriptionService() }
         register(MusicExtractor.self) { DefaultMusicExtractor() }
         register(MusicSearcher.self) { DefaultMusicSearcher() }
         register(PlaylistCreator.self) { DefaultPlaylistCreator() }
