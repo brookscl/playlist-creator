@@ -57,6 +57,7 @@
 		7AF290232E284E37B6795787 /* TranscriptProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F1FE1284F14F29B58A6253 /* TranscriptProcessor.swift */; };
 	484C0D50B76547BF8CB743BE /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5D822603C24390ABF57121 /* OpenAIService.swift */; };
 		056006892AEE44DA8C9B2A27 /* OpenAIServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D46BD8BA43428CB176D956 /* OpenAIServiceTests.swift */; };
+	94E03F5453DA4A92910E939B /* MusicDataNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8B5D4055B1469482D09C85 /* MusicDataNormalizer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -124,6 +125,7 @@
 		44F1FE1284F14F29B58A6253 /* TranscriptProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreator/Services/TranscriptProcessor.swift; sourceTree = "<group>"; };
 	CD5D822603C24390ABF57121 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreator/Services/OpenAIService.swift; sourceTree = "<group>"; };
 		27D46BD8BA43428CB176D956 /* OpenAIServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OpenAIServiceTests.swift; path = PlaylistCreatorTests/Services/OpenAIServiceTests.swift; sourceTree = SOURCE_ROOT; };
+	9A8B5D4055B1469482D09C85 /* MusicDataNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreator/Services/MusicDataNormalizer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -410,6 +412,7 @@
 				80B9F3447A4B704A762DA779 /* Transcriber.swift in Sources */,
 				7AF290232E284E37B6795787 /* TranscriptProcessor.swift in Sources */,
 				484C0D50B76547BF8CB743BE /* OpenAIService.swift in Sources */,
+				94E03F5453DA4A92910E939B /* MusicDataNormalizer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

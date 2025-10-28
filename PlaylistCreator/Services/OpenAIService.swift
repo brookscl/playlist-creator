@@ -42,23 +42,28 @@ class OpenAIService: MusicExtractor {
     private let apiKey: String?
     private let configuration: OpenAIConfiguration
     private let urlSession: URLSessionProtocol
+    private let normalizer: MusicDataNormalizer
     private let apiEndpoint = "https://api.openai.com/v1/chat/completions"
     private var lastRequestTime: Date?
 
     init(apiKey: String?,
          model: String = "gpt-4",
-         urlSession: URLSessionProtocol = URLSession.shared) {
+         urlSession: URLSessionProtocol = URLSession.shared,
+         normalizer: MusicDataNormalizer = MusicDataNormalizer()) {
         self.apiKey = apiKey
         self.configuration = OpenAIConfiguration(model: model)
         self.urlSession = urlSession
+        self.normalizer = normalizer
     }
 
     init(apiKey: String?,
          configuration: OpenAIConfiguration,
-         urlSession: URLSessionProtocol = URLSession.shared) {
+         urlSession: URLSessionProtocol = URLSession.shared,
+         normalizer: MusicDataNormalizer = MusicDataNormalizer()) {
         self.apiKey = apiKey
         self.configuration = configuration
         self.urlSession = urlSession
+        self.normalizer = normalizer
     }
 
     // MARK: - MusicExtractor Protocol
@@ -138,17 +143,34 @@ class OpenAIService: MusicExtractor {
 
     private func buildSystemPrompt() -> String {
         return """
-        You are a music extraction assistant. Your task is to identify and extract all music mentions (songs, artists, albums) from transcripts.
+        You are an expert music extraction assistant specializing in identifying song and artist mentions from conversational transcripts.
 
-        Return results as a JSON array of objects with these fields:
-        - title: Song title (string)
-        - artist: Artist name (string)
-        - confidence: Confidence score 0.0-1.0 (number)
-        - context: Brief context of the mention (string)
-        - timestamp: Optional timestamp in seconds (number or null)
+        TASK: Extract ALL music mentions (songs with artists) from the provided transcript.
 
-        Extract ALL music mentions, even casual references. Preserve chronological order. Be thorough but accurate.
-        Return only the JSON array, no additional text.
+        EXTRACTION RULES:
+        1. Extract EVERY song mention, including casual references, recommendations, and discussions
+        2. Always provide both song title AND artist name - never extract one without the other
+        3. If only a song title is mentioned, use context to infer the artist (if possible)
+        4. If only an artist is mentioned without specific songs, DO NOT extract
+        5. Preserve the chronological order from the transcript
+        6. Handle various formats: "Song by Artist", "Artist's Song", "Song - Artist", etc.
+        7. Clean up formatting but preserve proper capitalization
+
+        CONFIDENCE SCORING (0.0-1.0):
+        - 0.9-1.0: Explicit mention with clear song + artist
+        - 0.7-0.89: Clear mention but requires minor context inference
+        - 0.5-0.69: Implied mention with reasonable context support
+        - Below 0.5: Uncertain or ambiguous
+
+        OUTPUT FORMAT - JSON array with these exact fields:
+        - title: Song title (string, properly capitalized)
+        - artist: Artist name (string, properly capitalized)
+        - confidence: Score 0.0-1.0 (number)
+        - context: Brief quote showing the mention (string, max 100 chars)
+        - timestamp: Time in seconds if available (number or null)
+
+        IMPORTANT: Return ONLY the JSON array, no markdown, no explanations, no additional text.
+        If no songs found, return empty array: []
         """
     }
 
@@ -256,21 +278,41 @@ class OpenAIService: MusicExtractor {
 
         do {
             let extractedItems = try JSONDecoder().decode([ExtractedMusicItem].self, from: jsonData)
-            return extractedItems.map { item in
-                let song = Song(
-                    title: item.title,
-                    artist: item.artist,
-                    appleID: nil,
-                    confidence: item.confidence
+            var processedSongs: [ExtractedSong] = []
+
+            for item in extractedItems {
+                // Normalize title and artist
+                let normalizedTitle = normalizer.normalizeSongTitle(item.title)
+                let normalizedArtist = normalizer.normalizeArtistName(item.artist)
+
+                // Adjust confidence based on data quality
+                let adjustedConfidence = normalizer.adjustConfidence(
+                    item.confidence,
+                    title: normalizedTitle,
+                    artist: normalizedArtist
                 )
 
-                return ExtractedSong(
+                let song = Song(
+                    title: normalizedTitle,
+                    artist: normalizedArtist,
+                    appleID: nil,
+                    confidence: adjustedConfidence
+                )
+
+                let extractedSong = ExtractedSong(
                     song: song,
                     context: item.context ?? "",
                     timestamp: item.timestamp,
-                    extractionConfidence: item.confidence
+                    extractionConfidence: adjustedConfidence
                 )
+
+                // Check for duplicates before adding
+                if !processedSongs.contains(where: { normalizer.areLikelyDuplicates($0.song, song) }) {
+                    processedSongs.append(extractedSong)
+                }
             }
+
+            return processedSongs
         } catch {
             throw MusicExtractionError.parsingFailed("Failed to parse music items: \(error.localizedDescription)")
         }
