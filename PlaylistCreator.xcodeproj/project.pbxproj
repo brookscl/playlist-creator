@@ -55,6 +55,8 @@
 		DBBE38902486467394D116A8 /* TranscriptionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2752E97DCCC4776B058FC02 /* TranscriptionServiceTests.swift */; };
 		B51FE53EBF1D42EDBF084C26 /* TranscriptProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C193D4495FF641F687D04201 /* TranscriptProcessorTests.swift */; };
 		7AF290232E284E37B6795787 /* TranscriptProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F1FE1284F14F29B58A6253 /* TranscriptProcessor.swift */; };
+	484C0D50B76547BF8CB743BE /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD5D822603C24390ABF57121 /* OpenAIService.swift */; };
+		056006892AEE44DA8C9B2A27 /* OpenAIServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D46BD8BA43428CB176D956 /* OpenAIServiceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +122,8 @@
 		C2752E97DCCC4776B058FC02 /* TranscriptionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServiceTests.swift; path = PlaylistCreatorTests/Services/TranscriptionServiceTests.swift; sourceTree = SOURCE_ROOT; };
 		C193D4495FF641F687D04201 /* TranscriptProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptProcessorTests.swift; path = PlaylistCreatorTests/Services/TranscriptProcessorTests.swift; sourceTree = SOURCE_ROOT; };
 		44F1FE1284F14F29B58A6253 /* TranscriptProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreator/Services/TranscriptProcessor.swift; sourceTree = "<group>"; };
+	CD5D822603C24390ABF57121 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreator/Services/OpenAIService.swift; sourceTree = "<group>"; };
+		27D46BD8BA43428CB176D956 /* OpenAIServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OpenAIServiceTests.swift; path = PlaylistCreatorTests/Services/OpenAIServiceTests.swift; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -371,6 +375,7 @@
 				D3BCF2EE1F6AC885383FE521 /* SongTests.swift in Sources */,
 				EB79CE0451019B91B573A5D4 /* TranscriberTests.swift in Sources */,
 				04D51D3F424E4FCFAFD5DDC5 /* TranscriptProcessorTests.swift in Sources */,
+				056006892AEE44DA8C9B2A27 /* OpenAIServiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -404,6 +409,7 @@
 				A2165EFC5EEE7F9C90AD2274 /* Song.swift in Sources */,
 				80B9F3447A4B704A762DA779 /* Transcriber.swift in Sources */,
 				7AF290232E284E37B6795787 /* TranscriptProcessor.swift in Sources */,
+				484C0D50B76547BF8CB743BE /* OpenAIService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
