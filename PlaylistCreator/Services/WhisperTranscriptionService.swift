@@ -13,15 +13,18 @@ class WhisperTranscriptionService: Transcriber {
 
     private let whisperCLIPath: String
     private let modelPath: String?
+    private let transcriptProcessor: TranscriptProcessor
     var maxRetries = 3
     var progressCallback: ((Double) -> Void)?
 
     // MARK: - Initialization
 
     init(whisperCLIPath: String = "/opt/homebrew/bin/whisper-cli",
-         modelPath: String? = "/Users/chrisbrooks/bin/ggml-large-v3-turbo-q8_0.bin") {
+         modelPath: String? = "/Users/chrisbrooks/bin/ggml-large-v3-turbo-q8_0.bin",
+         transcriptProcessor: TranscriptProcessor = TranscriptProcessor()) {
         self.whisperCLIPath = whisperCLIPath
         self.modelPath = modelPath
+        self.transcriptProcessor = transcriptProcessor
     }
 
     // MARK: - Transcriber Protocol
@@ -34,10 +37,14 @@ class WhisperTranscriptionService: Transcriber {
         updateProgress(0.1)
 
         // Perform transcription
-        let transcript = try await performTranscription(preprocessedAudio, includeTimestamps: false)
+        let rawTranscript = try await performTranscription(preprocessedAudio, includeTimestamps: false)
+        updateProgress(0.9)
+
+        // Process and clean transcript
+        let processedTranscript = transcriptProcessor.process(rawTranscript)
         updateProgress(1.0)
 
-        return transcript
+        return processedTranscript
     }
 
     func transcribeWithTimestamps(_ audio: ProcessedAudio) async throws -> Transcript {
@@ -49,15 +56,21 @@ class WhisperTranscriptionService: Transcriber {
 
         // Check if audio needs chunking
         let maxChunkDuration: TimeInterval = 600 // 10 minutes
+        let rawTranscript: Transcript
         if audio.duration > maxChunkDuration {
-            return try await transcribeInChunks(preprocessedAudio, maxChunkDuration: maxChunkDuration)
+            rawTranscript = try await transcribeInChunks(preprocessedAudio, maxChunkDuration: maxChunkDuration)
+        } else {
+            // Perform transcription with timestamps
+            rawTranscript = try await performTranscription(preprocessedAudio, includeTimestamps: true)
         }
 
-        // Perform transcription with timestamps
-        let transcript = try await performTranscription(preprocessedAudio, includeTimestamps: true)
+        updateProgress(0.9)
+
+        // Process and clean transcript
+        let processedTranscript = transcriptProcessor.process(rawTranscript)
         updateProgress(1.0)
 
-        return transcript
+        return processedTranscript
     }
 
     // MARK: - Audio Preprocessing

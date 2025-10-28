@@ -53,6 +53,8 @@
 		1B7897A798D94F92AA57094C /* AudioExtractionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEB6592203043408422FF7B /* AudioExtractionTests.swift */; };
 		299E57053AFD4CB7A4E2CFED /* WhisperTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78E4256E56A446249F898283 /* WhisperTranscriptionService.swift */; };
 		DBBE38902486467394D116A8 /* TranscriptionServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2752E97DCCC4776B058FC02 /* TranscriptionServiceTests.swift */; };
+		B51FE53EBF1D42EDBF084C26 /* TranscriptProcessorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C193D4495FF641F687D04201 /* TranscriptProcessorTests.swift */; };
+		7AF290232E284E37B6795787 /* TranscriptProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F1FE1284F14F29B58A6253 /* TranscriptProcessor.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -116,6 +118,8 @@
 		7CEB6592203043408422FF7B /* AudioExtractionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioExtractionTests.swift; path = PlaylistCreatorTests/Services/AudioExtractionTests.swift; sourceTree = SOURCE_ROOT; };
 		78E4256E56A446249F898283 /* WhisperTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriptionService.swift; sourceTree = "<group>"; };
 		C2752E97DCCC4776B058FC02 /* TranscriptionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServiceTests.swift; path = PlaylistCreatorTests/Services/TranscriptionServiceTests.swift; sourceTree = SOURCE_ROOT; };
+		C193D4495FF641F687D04201 /* TranscriptProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptProcessorTests.swift; path = PlaylistCreatorTests/Services/TranscriptProcessorTests.swift; sourceTree = SOURCE_ROOT; };
+		44F1FE1284F14F29B58A6253 /* TranscriptProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreator/Services/TranscriptProcessor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -366,6 +370,7 @@
 				7A96DD8787DD2AE5439EADD1 /* ServiceContainerTests.swift in Sources */,
 				D3BCF2EE1F6AC885383FE521 /* SongTests.swift in Sources */,
 				EB79CE0451019B91B573A5D4 /* TranscriberTests.swift in Sources */,
+				04D51D3F424E4FCFAFD5DDC5 /* TranscriptProcessorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -398,6 +403,7 @@
 				78435CB27E4C5FF22289900A /* ServiceContainer.swift in Sources */,
 				A2165EFC5EEE7F9C90AD2274 /* Song.swift in Sources */,
 				80B9F3447A4B704A762DA779 /* Transcriber.swift in Sources */,
+				7AF290232E284E37B6795787 /* TranscriptProcessor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
