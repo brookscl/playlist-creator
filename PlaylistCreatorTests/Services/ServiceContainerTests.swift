@@ -86,20 +86,20 @@ final class ServiceContainerTests: XCTestCase {
     
     func testConfigureProduction() throws {
         container.configureProduction()
-        
-        // Test that all production services are registered
+
+        // Test that all production services are registered with actual implementations
         let audioProcessor = container.resolve(AudioProcessor.self)
-        XCTAssertTrue(audioProcessor is DefaultAudioProcessor)
-        
+        XCTAssertTrue(audioProcessor is FileUploadService)
+
         let transcriber = container.resolve(Transcriber.self)
-        XCTAssertTrue(transcriber is DefaultTranscriber)
-        
+        XCTAssertTrue(transcriber is WhisperTranscriptionService)
+
         let musicExtractor = container.resolve(MusicExtractor.self)
-        XCTAssertTrue(musicExtractor is DefaultMusicExtractor)
-        
+        XCTAssertTrue(musicExtractor is OpenAIService)
+
         let musicSearcher = container.resolve(MusicSearcher.self)
         XCTAssertTrue(musicSearcher is DefaultMusicSearcher)
-        
+
         let playlistCreator = container.resolve(PlaylistCreator.self)
         XCTAssertTrue(playlistCreator is DefaultPlaylistCreator)
     }
@@ -108,8 +108,8 @@ final class ServiceContainerTests: XCTestCase {
         // Configure production first
         container.configureProduction()
         let productionProcessor = container.resolve(AudioProcessor.self)
-        XCTAssertTrue(productionProcessor is DefaultAudioProcessor)
-        
+        XCTAssertTrue(productionProcessor is FileUploadService)
+
         // Create new container and configure mocks
         let newContainer = DefaultServiceContainer()
         newContainer.configureMocks()
