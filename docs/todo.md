@@ -244,35 +244,35 @@
 ## Apple Music Search Week (Week 5)
 
 ### 5.1: MusicKit Search Implementation
-- [ ] Write comprehensive tests for MusicKit search functionality using mocked responses (25+ tests)
-- [ ] Create AppleMusicSearchService conforming to existing MusicSearcher protocol
-- [ ] Implement MusicKit authorization and user permissions handling
-- [ ] Add search query optimization for best results
-- [ ] Implement result filtering and ranking by relevance
-- [ ] Handle API rate limits and search quotas
-- [ ] Create proper error handling for search failures
-- [ ] Add batch search optimization for multiple songs
-- [ ] Handle user authorization flow
-- [ ] Implement search with various query strategies
-- [ ] Filter results by song type, availability, etc.
-- [ ] Rank results by relevance and popularity
-- [ ] Handle regional availability differences
-- [ ] Manage API quotas and rate limits
-- [ ] Try multiple query formats for better matches
-- [ ] Handle special characters and formatting
-- [ ] Search by artist first, then song title
-- [ ] Implement fallback strategies for difficult matches
-- [ ] Add query result caching for performance
-- [ ] Test search functionality with mocked MusicKit responses
-- [ ] Test authorization flow testing
-- [ ] Test query optimization validation
-- [ ] Test result filtering and ranking
-- [ ] Test error handling for various failure scenarios
-- [ ] Test batch search performance testing
-- [ ] Connect to music extraction results
-- [ ] Update PlaylistRequest with search results
-- [ ] Enhance error handling system
-- [ ] Add search progress tracking
+- [x] Write comprehensive tests for MusicKit search functionality using mocked responses (25 tests implemented, all passing)
+- [x] Create AppleMusicSearchService conforming to existing MusicSearcher protocol
+- [x] Implement MusicKit authorization and user permissions handling
+- [x] Add search query optimization for best results
+- [x] Implement result filtering and ranking by relevance
+- [x] Handle API rate limits and search quotas
+- [x] Create proper error handling for search failures
+- [x] Add batch search optimization for multiple songs
+- [x] Handle user authorization flow
+- [x] Implement search with various query strategies (multiple query strategies including "The Beatles" variations)
+- [x] Filter results by song type, availability, etc.
+- [x] Rank results by relevance and popularity (confidence-based sorting)
+- [x] Handle regional availability differences
+- [x] Manage API quotas and rate limits (configurable rate limiting with 100ms default delay)
+- [x] Try multiple query formats for better matches (cleanSearchTerm removes special characters, handles parentheticals)
+- [x] Handle special characters and formatting (Unicode support, quote removal, etc.)
+- [x] Search by artist first, then song title
+- [x] Implement fallback strategies for difficult matches (multiple query strategies with continue on failure)
+- [ ] Add query result caching for performance (deferred - not critical for MVP)
+- [x] Test search functionality with mocked MusicKit responses
+- [x] Test authorization flow testing
+- [x] Test query optimization validation
+- [x] Test result filtering and ranking
+- [x] Test error handling for various failure scenarios
+- [x] Test batch search performance testing (includes rate limiting verification)
+- [x] Connect to music extraction results (uses Song model from extraction)
+- [x] Update PlaylistRequest with search results (SearchResult model with Song, confidence, Apple ID, preview URL)
+- [x] Enhance error handling system (proper error propagation for network, rate limit, auth errors)
+- [x] Add search progress tracking (supported via batch search enumeration)
 
 ### 5.2: Match Confidence and Auto-Selection Logic
 - [ ] Write comprehensive tests for confidence scoring and auto-selection logic (30+ tests)
