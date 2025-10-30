@@ -204,6 +204,10 @@ class OpenAIService: MusicExtractor {
             decoder.keyDecodingStrategy = .convertFromSnakeCase
             return try decoder.decode(OpenAIResponse.self, from: data)
 
+        } catch let error as DecodingError {
+            // JSON parsing errors shouldn't be retried
+            throw MusicExtractionError.parsingFailed(error.localizedDescription)
+
         } catch let error as MusicExtractionError {
             // Don't retry on certain errors
             if case .apiKeyMissing = error {
