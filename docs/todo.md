@@ -244,8 +244,8 @@
 
 ## Apple Music Search Week (Week 5)
 
-### 5.1: MusicKit Search Implementation
-- [x] Write comprehensive tests for MusicKit search functionality using mocked responses (25 tests implemented, all passing)
+### 5.1: MusicKit Search Implementation ✅ COMPLETE
+- [x] Write comprehensive tests for MusicKit search functionality using mocked responses (25 tests implemented, 25/25 passing)
 - [x] Create AppleMusicSearchService conforming to existing MusicSearcher protocol
 - [x] Implement MusicKit authorization and user permissions handling
 - [x] Add search query optimization for best results
@@ -274,6 +274,32 @@
 - [x] Update PlaylistRequest with search results (SearchResult model with Song, confidence, Apple ID, preview URL)
 - [x] Enhance error handling system (proper error propagation for network, rate limit, auth errors)
 - [x] Add search progress tracking (supported via batch search enumeration)
+- [x] Fix test failures and regression (ServiceContainer now uses actual implementations)
+- [x] All 314 tests passing (100% pass rate)
+
+## Settings Interlude (Before Week 5.2)
+
+### Settings System Implementation
+- [ ] Write tests for settings management and keychain integration (15+ tests)
+- [ ] Create AppSettings model for storing user preferences
+- [ ] Implement KeychainManager for secure API key storage
+- [ ] Create SettingsManager for managing app-wide settings
+- [ ] Add UserDefaults integration for non-sensitive settings
+- [ ] Create SettingsView UI for user configuration
+- [ ] Implement secure API key input with validation
+- [ ] Add settings navigation from main menu
+- [ ] Update OpenAIService to read from settings instead of environment
+- [ ] Add settings icon/button to ContentView
+- [ ] Test keychain storage and retrieval
+- [ ] Test settings persistence across app launches
+- [ ] Test API key validation
+- [ ] Test settings UI interactions
+- [ ] Integrate with existing ServiceContainer
+- [ ] Add error handling for keychain access failures
+- [ ] Create first-run experience for API key setup
+- [ ] Add ability to update/change API key
+- [ ] Add ability to clear stored credentials
+- [ ] Add settings validation before workflow start
 
 ### 5.2: Match Confidence and Auto-Selection Logic
 - [ ] Write comprehensive tests for confidence scoring and auto-selection logic (30+ tests)
