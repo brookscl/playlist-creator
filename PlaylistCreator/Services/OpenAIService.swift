@@ -66,6 +66,19 @@ class OpenAIService: MusicExtractor {
         self.normalizer = normalizer
     }
 
+    // Convenience initializer using SettingsManager
+    convenience init(settingsManager: SettingsManager = .shared,
+                     urlSession: URLSessionProtocol = URLSession.shared,
+                     normalizer: MusicDataNormalizer = MusicDataNormalizer()) {
+        let apiKey = try? settingsManager.getAPIKey()
+        let configuration = OpenAIConfiguration(
+            model: settingsManager.openAIModel,
+            temperature: settingsManager.openAITemperature,
+            maxTokens: settingsManager.openAIMaxTokens
+        )
+        self.init(apiKey: apiKey, configuration: configuration, urlSession: urlSession, normalizer: normalizer)
+    }
+
     // MARK: - MusicExtractor Protocol
 
     func extractSongs(from transcript: Transcript) async throws -> [Song] {

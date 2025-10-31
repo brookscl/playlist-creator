@@ -41,6 +41,7 @@
 		7E52A241AE64A3333F484D98 /* MusicExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A626FF129AD281B9B2841F1 /* MusicExtractor.swift */; };
 		80B9F3447A4B704A762DA779 /* Transcriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF4A1DC61A85BD6634D0D02 /* Transcriber.swift */; };
 		85F3359FC2C8DC30F4C749CB /* PlaylistCreatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5BB459A50CE342EE24761E1 /* PlaylistCreatorApp.swift */; };
+		8A957476C6B7C02A888EA979 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E33BE836DFD56DFBB21251C /* SettingsView.swift */; };
 		8D93B251CF280D9499502E55 /* MusicExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF141222014D46E3AD0112A2 /* MusicExtractorTests.swift */; };
 		8E041A8B7A0C4071C0AF5258 /* ProcessingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E82F3ADFFB33D23315387BF3 /* ProcessingStatus.swift */; };
 		94E03F5453DA4A92910E939B /* MusicDataNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8B5D4055B1469482D09C85 /* MusicDataNormalizer.swift */; };
@@ -85,6 +86,7 @@
 		35E97F3FC4190C4D905556DF /* MatchStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchStatus.swift; sourceTree = "<group>"; };
 		363F71ED79FCBEB26E9EE8BF /* SettingsManagerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsManagerTests.swift; path = Settings/SettingsManagerTests.swift; sourceTree = "<group>"; };
 		3B9E90A489BB7FC59CCAA211 /* AppleMusicSearchService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleMusicSearchService.swift; sourceTree = "<group>"; };
+		3E33BE836DFD56DFBB21251C /* SettingsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		40FBEF3E88D0DFD0740D0029 /* PlaylistCreator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreator.swift; sourceTree = "<group>"; };
 		42457A5844FF042C44600B1A /* MockAudioProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAudioProcessor.swift; sourceTree = "<group>"; };
 		44F1FE1284F14F29B58A6253 /* TranscriptProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreator/Services/TranscriptProcessor.swift; sourceTree = "<group>"; };
@@ -172,6 +174,7 @@
 			children = (
 				8C33870D02A6974ACB79B45A /* ContentView.swift */,
 				512BFB15AC3994BDCE08BDF3 /* FileUploadView.swift */,
+				3E33BE836DFD56DFBB21251C /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -443,6 +446,7 @@
 				B7DED85DFD5E3C0BF1ADA808 /* AppleMusicSearchService.swift in Sources */,
 				06F641801A91F11EAC2FB72B /* KeychainManager.swift in Sources */,
 				52EEF07F1C86F5F97C9160DB /* SettingsManager.swift in Sources */,
+				8A957476C6B7C02A888EA979 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

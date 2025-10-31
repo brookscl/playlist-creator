@@ -43,7 +43,7 @@ class DefaultServiceContainer: ServiceContainer {
     func configureProduction() {
         register(AudioProcessor.self) { FileUploadService() }
         register(Transcriber.self) { WhisperTranscriptionService() }
-        register(MusicExtractor.self) { OpenAIService(apiKey: ProcessInfo.processInfo.environment["OPENAI_API_KEY"]) }
+        register(MusicExtractor.self) { OpenAIService(settingsManager: .shared) }
         register(MusicSearcher.self) { DefaultMusicSearcher() }
         register(PlaylistCreator.self) { DefaultPlaylistCreator() }
     }
