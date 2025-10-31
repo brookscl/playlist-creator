@@ -42,11 +42,13 @@
 		7AF290232E284E37B6795787 /* TranscriptProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F1FE1284F14F29B58A6253 /* TranscriptProcessor.swift */; };
 		7E52A241AE64A3333F484D98 /* MusicExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A626FF129AD281B9B2841F1 /* MusicExtractor.swift */; };
 		80B9F3447A4B704A762DA779 /* Transcriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEF4A1DC61A85BD6634D0D02 /* Transcriber.swift */; };
+		818E3C754DC25638C59117C0 /* MatchSelectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA3B148A712008DF0E09FDE7 /* MatchSelectionViewModel.swift */; };
 		85F3359FC2C8DC30F4C749CB /* PlaylistCreatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5BB459A50CE342EE24761E1 /* PlaylistCreatorApp.swift */; };
 		8A957476C6B7C02A888EA979 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E33BE836DFD56DFBB21251C /* SettingsView.swift */; };
 		8D93B251CF280D9499502E55 /* MusicExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF141222014D46E3AD0112A2 /* MusicExtractorTests.swift */; };
 		8E041A8B7A0C4071C0AF5258 /* ProcessingStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E82F3ADFFB33D23315387BF3 /* ProcessingStatus.swift */; };
 		94E03F5453DA4A92910E939B /* MusicDataNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A8B5D4055B1469482D09C85 /* MusicDataNormalizer.swift */; };
+		983B6EF3D33DCA524E7114C3 /* MatchSelectionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C23C42FC64D8DDB8832277B5 /* MatchSelectionViewModelTests.swift */; };
 		98D50E3AD569EFB9D06A0AF8 /* MatchedSong.swift in Sources */ = {isa = PBXBuildFile; fileRef = D48E15D196E1FECA1AC1F5C3 /* MatchedSong.swift */; };
 		9CBF6460793E3D6C98050151 /* PlaylistErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C74F65585C251CCBF9BCBF /* PlaylistErrorTests.swift */; };
 		9E9AC0EC2B1705806CD71E91 /* MockMusicExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F64891A2E2366A35432BB4C3 /* MockMusicExtractor.swift */; };
@@ -123,6 +125,7 @@
 		B9FC5EFBCE2FAB67669BCBB0 /* FileUploadServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUploadServiceTests.swift; sourceTree = "<group>"; };
 		C082FCBBB6D7BAD3B01DEEB8 /* PlaylistCreatorServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreatorServiceTests.swift; sourceTree = "<group>"; };
 		C118177ED08BE7C415CDFBDC /* FileUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUploadService.swift; sourceTree = "<group>"; };
+		C23C42FC64D8DDB8832277B5 /* MatchSelectionViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MatchSelectionViewModelTests.swift; sourceTree = "<group>"; };
 		C2752E97DCCC4776B058FC02 /* TranscriptionServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TranscriptionServiceTests.swift; path = PlaylistCreatorTests/Services/TranscriptionServiceTests.swift; sourceTree = SOURCE_ROOT; };
 		C4D18C87D7C29E464252B9A6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C5BB459A50CE342EE24761E1 /* PlaylistCreatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistCreatorApp.swift; sourceTree = "<group>"; };
@@ -137,6 +140,7 @@
 		F3BE2DDFDA506B6FFAD5BBEC /* AppleMusicSearchServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleMusicSearchServiceTests.swift; sourceTree = "<group>"; };
 		F600640A76DD103F63AE1E7F /* AudioProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessor.swift; sourceTree = "<group>"; };
 		F64891A2E2366A35432BB4C3 /* MockMusicExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockMusicExtractor.swift; sourceTree = "<group>"; };
+		FA3B148A712008DF0E09FDE7 /* MatchSelectionViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MatchSelectionViewModel.swift; sourceTree = "<group>"; };
 		FEF4A1DC61A85BD6634D0D02 /* Transcriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transcriber.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -202,6 +206,14 @@
 			name = Settings;
 			sourceTree = "<group>";
 		};
+		74F95CD6AEB79157D9FE9CFE /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				C23C42FC64D8DDB8832277B5 /* MatchSelectionViewModelTests.swift */,
+			);
+			name = ViewModels;
+			sourceTree = "<group>";
+		};
 		7654FDA78F39BE8BD5C44394 /* Mocks */ = {
 			isa = PBXGroup;
 			children = (
@@ -221,6 +233,7 @@
 				CF6F6418839368C3E735FBC7 /* Models */,
 				CDEE864A102B9A5A788A91D7 /* Services */,
 				94C0B07303AE0FBCFA7EE55C /* Settings */,
+				74F95CD6AEB79157D9FE9CFE /* ViewModels */,
 			);
 			path = PlaylistCreatorTests;
 			sourceTree = "<group>";
@@ -302,6 +315,7 @@
 			isa = PBXGroup;
 			children = (
 				53668D0C2557C7FA576A0707 /* FileUploadViewModel.swift */,
+				FA3B148A712008DF0E09FDE7 /* MatchSelectionViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -415,6 +429,7 @@
 				C93C0A51B77FBF326F0E820F /* KeychainManagerTests.swift in Sources */,
 				2300FD5A8853BEBB7E839F0D /* SettingsManagerTests.swift in Sources */,
 				78F4AD0CF4B802A5698474A6 /* MatchSelectorTests.swift in Sources */,
+				983B6EF3D33DCA524E7114C3 /* MatchSelectionViewModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -455,6 +470,7 @@
 				52EEF07F1C86F5F97C9160DB /* SettingsManager.swift in Sources */,
 				8A957476C6B7C02A888EA979 /* SettingsView.swift in Sources */,
 				5CFC64508A16BD362993486E /* MatchSelector.swift in Sources */,
+				818E3C754DC25638C59117C0 /* MatchSelectionViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
