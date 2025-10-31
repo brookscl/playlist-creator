@@ -9,9 +9,11 @@
 /* Begin PBXBuildFile section */
 		04EFB7824CDEAB888C27A39D /* ProcessingStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7B82C8167AF1454F8D800AF /* ProcessingStatusTests.swift */; };
 		056006892AEE44DA8C9B2A27 /* OpenAIServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D46BD8BA43428CB176D956 /* OpenAIServiceTests.swift */; };
+		062478816111A73353FDE05C /* MatchSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A5915B723C58C15706C5DE /* MatchSelectionView.swift */; };
 		06F641801A91F11EAC2FB72B /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 592EC583C966CB1347596210 /* KeychainManager.swift */; };
 		0849A1F2F661A302A025A792 /* FileUploadServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9FC5EFBCE2FAB67669BCBB0 /* FileUploadServiceTests.swift */; };
 		0D7463998336E33F5BD42CE4 /* PlaylistCreatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4780841B6B2CE84173749B30 /* PlaylistCreatorTests.swift */; };
+		16C8D567AF138C44726A8A88 /* MatchCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7585C7B6961D59FEB24FF391 /* MatchCardView.swift */; };
 		1B7897A798D94F92AA57094C /* AudioExtractionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEB6592203043408422FF7B /* AudioExtractionTests.swift */; };
 		1EECD58E0F20F500D2FA9204 /* FileUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C118177ED08BE7C415CDFBDC /* FileUploadService.swift */; };
 		2300FD5A8853BEBB7E839F0D /* SettingsManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 363F71ED79FCBEB26E9EE8BF /* SettingsManagerTests.swift */; };
@@ -106,8 +108,10 @@
 		5635D0903107CAD6EC033BE9 /* MockTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockTranscriber.swift; sourceTree = "<group>"; };
 		592EC583C966CB1347596210 /* KeychainManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = KeychainManager.swift; path = Settings/KeychainManager.swift; sourceTree = "<group>"; };
 		6BE9CF0EE6EE2BC6B82476A4 /* PlaylistRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistRequestTests.swift; sourceTree = "<group>"; };
+		7585C7B6961D59FEB24FF391 /* MatchCardView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MatchCardView.swift; sourceTree = "<group>"; };
 		77A3E0564ACB477091D44BB2 /* URLDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLDownloader.swift; sourceTree = "<group>"; };
 		78E4256E56A446249F898283 /* WhisperTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriptionService.swift; sourceTree = "<group>"; };
+		79A5915B723C58C15706C5DE /* MatchSelectionView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MatchSelectionView.swift; sourceTree = "<group>"; };
 		7BA2CA13E6B8B4341E96B1C5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7CEB6592203043408422FF7B /* AudioExtractionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AudioExtractionTests.swift; path = PlaylistCreatorTests/Services/AudioExtractionTests.swift; sourceTree = SOURCE_ROOT; };
 		7D6D1EC181E7384062DFDD51 /* AudioProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessorTests.swift; sourceTree = "<group>"; };
@@ -184,6 +188,8 @@
 				8C33870D02A6974ACB79B45A /* ContentView.swift */,
 				512BFB15AC3994BDCE08BDF3 /* FileUploadView.swift */,
 				3E33BE836DFD56DFBB21251C /* SettingsView.swift */,
+				7585C7B6961D59FEB24FF391 /* MatchCardView.swift */,
+				79A5915B723C58C15706C5DE /* MatchSelectionView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -471,6 +477,8 @@
 				8A957476C6B7C02A888EA979 /* SettingsView.swift in Sources */,
 				5CFC64508A16BD362993486E /* MatchSelector.swift in Sources */,
 				818E3C754DC25638C59117C0 /* MatchSelectionViewModel.swift in Sources */,
+				16C8D567AF138C44726A8A88 /* MatchCardView.swift in Sources */,
+				062478816111A73353FDE05C /* MatchSelectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
