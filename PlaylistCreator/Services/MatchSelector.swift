@@ -92,7 +92,8 @@ struct MatchSelector {
         return MatchedSong(
             originalSong: originalSong,
             appleMusicSong: searchResult.song,
-            matchStatus: status
+            matchStatus: status,
+            previewURL: searchResult.previewURL
         )
     }
 

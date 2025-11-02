@@ -12,22 +12,27 @@ import Foundation
 struct MatchedSong: Codable, Equatable, Hashable {
     /// The original song extracted from transcript/content
     let originalSong: Song
-    
+
     /// The corresponding song found in Apple Music catalog
     let appleMusicSong: Song
-    
+
     /// Current status of this match (auto, pending, selected, skipped)
     var matchStatus: MatchStatus
-    
+
+    /// URL for 30-second preview audio (from Apple Music)
+    let previewURL: URL?
+
     /// Creates a new MatchedSong instance
     /// - Parameters:
     ///   - originalSong: The song extracted from source content
     ///   - appleMusicSong: The potential match from Apple Music catalog
     ///   - matchStatus: The current match status
-    init(originalSong: Song, appleMusicSong: Song, matchStatus: MatchStatus) {
+    ///   - previewURL: Optional URL for preview audio
+    init(originalSong: Song, appleMusicSong: Song, matchStatus: MatchStatus, previewURL: URL? = nil) {
         self.originalSong = originalSong
         self.appleMusicSong = appleMusicSong
         self.matchStatus = matchStatus
+        self.previewURL = previewURL
     }
 }
 
@@ -38,6 +43,7 @@ extension MatchedSong {
         hasher.combine(originalSong)
         hasher.combine(appleMusicSong)
         hasher.combine(matchStatus)
+        hasher.combine(previewURL)
     }
 }
 
