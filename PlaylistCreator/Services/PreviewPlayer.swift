@@ -55,16 +55,16 @@ enum PreviewPlayerError: Error, Equatable, LocalizedError {
 
 /// Concrete implementation of PreviewPlayer using AVPlayer
 @MainActor
-class AVPreviewPlayer: PreviewPlayer {
+class AVPreviewPlayer: PreviewPlayer, ObservableObject {
     nonisolated(unsafe) private var player: AVPlayer?
     nonisolated(unsafe) private var playerItem: AVPlayerItem?
     nonisolated(unsafe) private var timeObserver: Any?
 
     // MARK: - Published Properties
 
-    private(set) var isPlaying: Bool = false
-    private(set) var currentTime: TimeInterval = 0
-    private(set) var duration: TimeInterval = 30
+    @Published private(set) var isPlaying: Bool = false
+    @Published private(set) var currentTime: TimeInterval = 0
+    @Published private(set) var duration: TimeInterval = 30
 
     var volume: Float {
         get { Float(player?.volume ?? 1.0) }

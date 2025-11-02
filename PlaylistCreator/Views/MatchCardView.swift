@@ -11,6 +11,10 @@ struct MatchCardView: View {
 
     @State private var offset: CGSize = .zero
     @State private var isDragging: Bool = false
+    @StateObject private var previewPlayer = AVPreviewPlayer()
+    @State private var isPlaying = false
+    @State private var currentTime: TimeInterval = 0
+    @State private var playbackError: String?
 
     // MARK: - Constants
 
@@ -46,12 +50,20 @@ struct MatchCardView: View {
             // Song information
             songInformation
 
+            // Preview controls
+            if match.previewURL != nil {
+                previewControls
+            }
+
             Spacer()
 
             // Action buttons
             actionButtons
         }
         .padding(30)
+        .onDisappear {
+            stopPlayback()
+        }
     }
 
     private var confidenceIndicator: some View {
@@ -128,7 +140,10 @@ struct MatchCardView: View {
     private var actionButtons: some View {
         HStack(spacing: 20) {
             // Reject button
-            Button(action: onReject) {
+            Button(action: {
+                stopPlayback()
+                onReject()
+            }) {
                 HStack {
                     Image(systemName: "xmark")
                     Text("Skip")
@@ -143,7 +158,10 @@ struct MatchCardView: View {
             .keyboardShortcut(.leftArrow, modifiers: [])
 
             // Accept button
-            Button(action: onAccept) {
+            Button(action: {
+                stopPlayback()
+                onAccept()
+            }) {
                 HStack {
                     Image(systemName: "checkmark")
                     Text("Accept")
@@ -172,6 +190,9 @@ struct MatchCardView: View {
 
                 // Check if drag exceeds threshold
                 if abs(value.translation.width) > dragThreshold {
+                    // Stop playback when dismissing
+                    stopPlayback()
+
                     if value.translation.width > 0 {
                         // Swipe right = accept
                         withAnimation(.spring()) {
@@ -258,6 +279,102 @@ struct MatchCardView: View {
         case .poor:
             return .red
         }
+    }
+
+    // MARK: - Preview Controls
+
+    private var previewControls: some View {
+        VStack(spacing: 12) {
+            Divider()
+
+            HStack(spacing: 16) {
+                // Play/Pause button
+                Button(action: { togglePlayback() }) {
+                    Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(isPlaying ? .orange : .blue)
+                }
+                .buttonStyle(.plain)
+                .disabled(playbackError != nil)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    // Progress indicator
+                    if isPlaying {
+                        HStack(spacing: 8) {
+                            Text(formatTime(currentTime))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .monospacedDigit()
+
+                            ProgressView(value: currentTime, total: previewPlayer.duration)
+                                .progressViewStyle(.linear)
+
+                            Text(formatTime(previewPlayer.duration))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .monospacedDigit()
+                        }
+                    } else if let error = playbackError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    } else {
+                        Text("Preview Available")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+
+            Divider()
+        }
+    }
+
+    // MARK: - Playback Methods
+
+    private func togglePlayback() {
+        Task {
+            do {
+                if isPlaying {
+                    previewPlayer.pause()
+                    isPlaying = false
+                } else {
+                    guard let previewURL = match.previewURL else { return }
+
+                    try await previewPlayer.play(previewURL: previewURL)
+                    isPlaying = true
+                    playbackError = nil
+
+                    // Update progress
+                    startProgressTracking()
+                }
+            } catch {
+                playbackError = "Preview unavailable"
+                isPlaying = false
+            }
+        }
+    }
+
+    private func stopPlayback() {
+        previewPlayer.stop()
+        isPlaying = false
+        currentTime = 0
+    }
+
+    private func startProgressTracking() {
+        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+            guard isPlaying else {
+                timer.invalidate()
+                return
+            }
+            currentTime = previewPlayer.currentTime
+        }
+    }
+
+    private func formatTime(_ time: TimeInterval) -> String {
+        let minutes = Int(time) / 60
+        let seconds = Int(time) % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
 }
 
