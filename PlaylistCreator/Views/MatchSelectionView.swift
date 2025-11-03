@@ -8,9 +8,11 @@ import SwiftUI
 struct MatchSelectionView: View {
     @StateObject private var viewModel: MatchSelectionViewModel
     @Environment(\.dismiss) private var dismiss
+    let onComplete: () -> Void
 
-    init(matches: [MatchedSong]) {
+    init(matches: [MatchedSong], onComplete: @escaping () -> Void = {}) {
         _viewModel = StateObject(wrappedValue: MatchSelectionViewModel(matches: matches))
+        self.onComplete = onComplete
     }
 
     var body: some View {
@@ -132,7 +134,7 @@ struct MatchSelectionView: View {
                 .keyboardShortcut("r", modifiers: .command)
 
                 Button("Continue") {
-                    dismiss()
+                    onComplete()
                 }
                 .keyboardShortcut(.defaultAction)
             }

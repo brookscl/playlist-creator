@@ -1,0 +1,171 @@
+import Foundation
+import Combine
+
+/// Manages the complete workflow from file upload to playlist creation
+@MainActor
+class WorkflowViewModel: ObservableObject {
+
+    // MARK: - Workflow Phases
+
+    enum WorkflowPhase {
+        case fileInput          // File upload/URL input
+        case transcription      // Audio transcription
+        case musicExtraction    // Extracting music mentions from transcript
+        case musicSearch        // Searching Apple Music for songs
+        case matchSelection     // User reviewing and selecting matches
+        case playlistCreation   // Creating the playlist (future)
+        case complete           // Workflow complete
+        case error(String)      // Error state
+    }
+
+    // MARK: - Published Properties
+
+    @Published var currentPhase: WorkflowPhase = .fileInput
+    @Published var isProcessing = false
+    @Published var progress: Double = 0.0
+    @Published var statusMessage = ""
+
+    // Workflow data
+    @Published var transcript: Transcript?
+    @Published var extractedSongs: [Song] = []
+    @Published var matchedSongs: [MatchedSong] = []
+
+    // MARK: - Services
+
+    private let musicExtractor: MusicExtractor
+    private let musicSearcher: MusicSearcher
+
+    // MARK: - Initialization
+
+    init(musicExtractor: MusicExtractor = serviceContainer.resolve(MusicExtractor.self),
+         musicSearcher: MusicSearcher = serviceContainer.resolve(MusicSearcher.self)) {
+        self.musicExtractor = musicExtractor
+        self.musicSearcher = musicSearcher
+    }
+
+    // MARK: - Workflow Control
+
+    /// Called after transcription is complete to continue the workflow
+    func continueAfterTranscription(_ transcript: Transcript) async {
+        self.transcript = transcript
+        await extractMusicMentions()
+    }
+
+    /// Phase 1: Extract music mentions from transcript using AI
+    private func extractMusicMentions() async {
+        guard let transcript = transcript else { return }
+
+        currentPhase = .musicExtraction
+        isProcessing = true
+        progress = 0.0
+        statusMessage = "Extracting music mentions from transcript..."
+
+        do {
+            let songs = try await musicExtractor.extractSongs(from: transcript)
+            extractedSongs = songs
+
+            progress = 1.0
+            statusMessage = "Found \(songs.count) song\(songs.count == 1 ? "" : "s")"
+
+            // Automatically continue to music search
+            await searchAppleMusic()
+
+        } catch {
+            currentPhase = .error("Music extraction failed: \(error.localizedDescription)")
+            isProcessing = false
+        }
+    }
+
+    /// Phase 2: Search Apple Music for extracted songs
+    private func searchAppleMusic() async {
+        currentPhase = .musicSearch
+        isProcessing = true
+        progress = 0.0
+        statusMessage = "Searching Apple Music catalog..."
+
+        var allMatches: [MatchedSong] = []
+        let totalSongs = extractedSongs.count
+
+        // Search for each song
+        for (index, song) in extractedSongs.enumerated() {
+            statusMessage = "Searching Apple Music... (\(index + 1)/\(totalSongs))"
+            progress = Double(index) / Double(totalSongs)
+
+            do {
+                // Search for the song
+                let searchResults = try await musicSearcher.search(for: song)
+
+                if let bestResult = searchResults.first {
+                    // Create matched song using MatchSelector
+                    let match = MatchSelector.createMatchedSong(
+                        original: song,
+                        searchResult: bestResult
+                    )
+                    allMatches.append(match)
+                } else {
+                    // No results found - create a match with status pending for user review
+                    let noMatchSong = Song(
+                        title: "No match found",
+                        artist: song.artist,
+                        appleID: nil,
+                        confidence: 0.0
+                    )
+                    let noMatch = MatchedSong(
+                        originalSong: song,
+                        appleMusicSong: noMatchSong,
+                        matchStatus: .skipped
+                    )
+                    allMatches.append(noMatch)
+                }
+            } catch {
+                // Search failed for this song - skip it
+                print("Search failed for \(song.title) by \(song.artist): \(error)")
+                let noMatchSong = Song(
+                    title: "Search failed",
+                    artist: song.artist,
+                    appleID: nil,
+                    confidence: 0.0
+                )
+                let failedMatch = MatchedSong(
+                    originalSong: song,
+                    appleMusicSong: noMatchSong,
+                    matchStatus: .skipped
+                )
+                allMatches.append(failedMatch)
+            }
+        }
+
+        matchedSongs = allMatches
+        progress = 1.0
+
+        // Generate summary
+        let summary = MatchSelector.generateSelectionSummary(allMatches)
+        statusMessage = "Found \(summary.totalMatches) matches: \(summary.autoSelected) auto-selected, \(summary.requiresReview) need review"
+
+        // Move to match selection phase
+        currentPhase = .matchSelection
+        isProcessing = false
+    }
+
+    /// Called when user finishes reviewing matches
+    func completeMatchSelection() {
+        // For now, just mark as complete
+        // In Week 7, this will create the actual playlist
+        currentPhase = .complete
+        isProcessing = false
+
+        let selectedCount = matchedSongs.filter { $0.isIncludedInPlaylist }.count
+        statusMessage = "Selected \(selectedCount) songs for playlist"
+    }
+
+    /// Reset the entire workflow
+    func reset() {
+        currentPhase = .fileInput
+        isProcessing = false
+        progress = 0.0
+        statusMessage = ""
+        transcript = nil
+        extractedSongs = []
+        matchedSongs = []
+    }
+}

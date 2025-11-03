@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct FileUploadView: View {
     @StateObject private var viewModel = FileUploadViewModel()
+    @ObservedObject var workflowViewModel: WorkflowViewModel
     @State private var isDragOver = false
     @State private var showingFilePicker = false
     @State private var urlInputText = ""
@@ -209,9 +210,14 @@ struct FileUploadView: View {
                 .buttonStyle(.bordered)
 
                 Button("Continue") {
-                    // TODO: Navigate to next step (music extraction)
+                    if let transcript = viewModel.transcript {
+                        Task {
+                            await workflowViewModel.continueAfterTranscription(transcript)
+                        }
+                    }
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(viewModel.transcript == nil)
             }
         }
         .padding()
@@ -351,7 +357,7 @@ struct FileUploadView: View {
 
 struct FileUploadView_Previews: PreviewProvider {
     static var previews: some View {
-        FileUploadView()
+        FileUploadView(workflowViewModel: WorkflowViewModel())
             .frame(width: 400, height: 300)
     }
 }

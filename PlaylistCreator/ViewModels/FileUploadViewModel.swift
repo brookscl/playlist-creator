@@ -11,6 +11,7 @@ class FileUploadViewModel: ObservableObject {
     @Published var currentFileName: String?
     @Published var processedFileName: String?
     @Published var transcriptText: String?
+    @Published var transcript: Transcript?
     @Published var isTranscribing = false
 
     private let fileUploadService: FileUploadService
@@ -54,11 +55,9 @@ class FileUploadViewModel: ObservableObject {
             hasProcessedFile = true
             processedFileName = currentFileName
             transcriptText = transcript.text
+            self.transcript = transcript
             statusMessage = "Processing complete!"
             progress = 1.0
-
-            // Store processed audio and transcript for next step
-            // TODO: Pass to music extraction stage
 
         } catch {
             setError("Processing failed: \(error.localizedDescription)")
@@ -89,11 +88,9 @@ class FileUploadViewModel: ObservableObject {
             hasProcessedFile = true
             processedFileName = url.lastPathComponent.isEmpty ? "Downloaded file" : url.lastPathComponent
             transcriptText = transcript.text
+            self.transcript = transcript
             statusMessage = "Processing complete!"
             progress = 1.0
-
-            // Store processed audio and transcript for next step
-            // TODO: Pass to music extraction stage
 
         } catch {
             setError("Processing failed: \(error.localizedDescription)")
@@ -120,7 +117,9 @@ class FileUploadViewModel: ObservableObject {
         errorMessage = nil
         currentFileName = nil
         processedFileName = nil
-        
+        transcriptText = nil
+        transcript = nil
+
         // Clean up any temporary files
         fileUploadService.cleanupAllTemporaryFiles()
     }
