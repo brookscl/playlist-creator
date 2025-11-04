@@ -495,6 +495,74 @@
 
 **Note:** This was implemented early (before Week 7) to enable manual testing of all features built to date. The workflow currently stops at match selection completion - actual playlist creation via MusicKit will be added in Week 7.1.
 
+### 6.4: Apple Music Search Integration & Preview Playback Fix ✅ COMPLETE
+- [x] Implement iTunes Search API as free alternative to MusicKit catalog search
+- [x] Create RealMusicKitClient for future MusicKit integration
+- [x] Update ServiceContainer to use iTunes Search API by default
+- [x] Add comprehensive logging for debugging search and playback issues
+- [x] Fix AVPlayer preview playback initialization
+- [x] Add NSAppleMusicUsageDescription to Info.plist
+- [x] Test complete workflow from upload through match selection with working previews
+
+**Apple Music Search Implementation:**
+- Created `ITunesSearchClient.swift` (130+ lines) - Free iTunes Search API client
+  - No Apple Developer registration required
+  - No MusicKit identifier needed
+  - Returns preview URLs for 30-second clips
+  - Implements `MusicKitClientProtocol` for compatibility with `AppleMusicSearchService`
+  - Includes `ITunesTrackWrapper` to conform to protocol requirements
+  - Full HTTP request/response handling with error management
+- Created `RealMusicKitClient.swift` (89 lines) - Production MusicKit client (for future use)
+  - Requires Apple Developer Program enrollment
+  - Requires MusicKit Identifier registration
+  - Commented out in ServiceContainer, ready to enable when registered
+- Updated `ServiceContainer.swift` to use `ITunesMusicKitClient` by default
+- Updated `WorkflowViewModel.swift` to handle both client types (iTunes vs MusicKit)
+- Added `NSAppleMusicUsageDescription` to `Info.plist`
+
+**Preview Playback Fix:**
+- Simplified `AVPreviewPlayer.play()` implementation in `PreviewPlayer.swift`
+- Changed from `AVPlayer(playerItem:)` to `AVPlayer(url:)` for direct URL loading
+- Removed complex async waiting logic that was causing timeouts
+- Enabled `automaticallyWaitsToMinimizeStalling` for better buffering
+- AVPlayer now handles async loading and buffering automatically
+- Preview playback now works reliably with 30-second iTunes preview URLs
+
+**Debugging & Logging:**
+- Added comprehensive logging throughout the workflow:
+  - WorkflowViewModel: Service type detection, authorization status
+  - ITunesSearchClient: Request URLs, response status, result counts
+  - MatchCardView: Playback button clicks and state changes
+  - AVPreviewPlayer: Detailed player initialization and status tracking
+- Logging helped identify the root cause of both search and playback issues
+
+**Files Created:**
+- `ITunesSearchClient.swift` (NEW) - 130+ lines
+- `RealMusicKitClient.swift` (NEW) - 89 lines
+
+**Files Modified:**
+- `ServiceContainer.swift` - iTunes Search API configuration
+- `WorkflowViewModel.swift` - Support for both client types, extensive logging
+- `Info.plist` - Added NSAppleMusicUsageDescription
+- `PreviewPlayer.swift` - Simplified AVPlayer initialization
+- `MatchCardView.swift` - Added playback logging
+
+**Result:**
+- **iTunes Search API Working**: Songs found with 100% confidence matches
+- **Preview Playback Working**: 30-second previews play successfully
+- Complete end-to-end workflow now functional with real Apple Music data
+- All features manually tested and verified working
+- Preview controls show play button, progress bar, and time display
+- Audio plays through Mac speakers with proper volume control
+
+**Technical Notes:**
+- iTunes Search API is free and works immediately without registration
+- Returns same track IDs that can be used for playlist creation via MusicKit later
+- Preview URLs are 30-second AAC/M4A clips hosted by Apple
+- When ready for MusicKit: uncomment RealMusicKitClient in ServiceContainer and register app
+- MusicKit catalog search will provide the same functionality with official API
+- All existing AppleMusicSearchService code works with both clients due to protocol design
+
 ## Playlist Creation Week (Week 7)
 
 ### 7.1: Apple Music Playlist Generation

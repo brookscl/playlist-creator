@@ -333,15 +333,22 @@ struct MatchCardView: View {
     // MARK: - Playback Methods
 
     private func togglePlayback() {
+        print("🎵 togglePlayback() called, isPlaying: \(isPlaying)")
         Task {
             do {
                 if isPlaying {
+                    print("⏸️ Pausing playback")
                     previewPlayer.pause()
                     isPlaying = false
                 } else {
-                    guard let previewURL = match.previewURL else { return }
+                    guard let previewURL = match.previewURL else {
+                        print("❌ No preview URL available")
+                        return
+                    }
 
+                    print("▶️ Starting playback for: \(previewURL)")
                     try await previewPlayer.play(previewURL: previewURL)
+                    print("✅ Playback started successfully")
                     isPlaying = true
                     playbackError = nil
 
@@ -349,6 +356,7 @@ struct MatchCardView: View {
                     startProgressTracking()
                 }
             } catch {
+                print("❌ Playback error: \(error)")
                 playbackError = "Preview unavailable"
                 isPlaying = false
             }

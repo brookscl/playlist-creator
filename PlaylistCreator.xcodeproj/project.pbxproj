@@ -56,6 +56,8 @@
 		A2165EFC5EEE7F9C90AD2274 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80921619D063166FC4D6DD02 /* Song.swift */; };
 		B28F69402EB7CB7400111E44 /* PreviewPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28F693F2EB7CB7400111E44 /* PreviewPlayer.swift */; };
 		B28F69422EB7CB8600111E44 /* PreviewPlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B28F69412EB7CB8600111E44 /* PreviewPlayerTests.swift */; };
+		B2A0D8F62EB982EC004C4895 /* RealMusicKitClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A0D8F52EB982EC004C4895 /* RealMusicKitClient.swift */; };
+		B2A1FE342EB9894B00BF3386 /* ITunesSearchClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A1FE332EB9894B00BF3386 /* ITunesSearchClient.swift */; };
 		B2CE316A2EB901850091D4A9 /* WorkflowViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2CE31692EB901850091D4A9 /* WorkflowViewModel.swift */; };
 		B2D9E9452EB7CC9B00342576 /* MatchSelectionViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2D9E9442EB7CC9B00342576 /* MatchSelectionViewModelTests.swift */; };
 		B7DED85DFD5E3C0BF1ADA808 /* AppleMusicSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B9E90A489BB7FC59CCAA211 /* AppleMusicSearchService.swift */; };
@@ -129,6 +131,8 @@
 		B1424E4A1C869462687C40BF /* TranscriberTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriberTests.swift; sourceTree = "<group>"; };
 		B28F693F2EB7CB7400111E44 /* PreviewPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewPlayer.swift; sourceTree = "<group>"; };
 		B28F69412EB7CB8600111E44 /* PreviewPlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewPlayerTests.swift; sourceTree = "<group>"; };
+		B2A0D8F52EB982EC004C4895 /* RealMusicKitClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealMusicKitClient.swift; sourceTree = "<group>"; };
+		B2A1FE332EB9894B00BF3386 /* ITunesSearchClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ITunesSearchClient.swift; sourceTree = "<group>"; };
 		B2CE31692EB901850091D4A9 /* WorkflowViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkflowViewModel.swift; sourceTree = "<group>"; };
 		B2D9E9442EB7CC9B00342576 /* MatchSelectionViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchSelectionViewModelTests.swift; sourceTree = "<group>"; };
 		B747269EA4C8B1F3608E74B4 /* SongTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongTests.swift; sourceTree = "<group>"; };
@@ -158,6 +162,8 @@
 		387FE7646F16B265D0EDE6B8 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				B2A1FE332EB9894B00BF3386 /* ITunesSearchClient.swift */,
+				B2A0D8F52EB982EC004C4895 /* RealMusicKitClient.swift */,
 				B28F693F2EB7CB7400111E44 /* PreviewPlayer.swift */,
 				F600640A76DD103F63AE1E7F /* AudioProcessor.swift */,
 				C118177ED08BE7C415CDFBDC /* FileUploadService.swift */,
@@ -483,6 +489,7 @@
 				D154E5195064F431DB11B17C /* MockPlaylistCreator.swift in Sources */,
 				5A84A051986BBFBC3A49D168 /* MockTranscriber.swift in Sources */,
 				7E52A241AE64A3333F484D98 /* MusicExtractor.swift in Sources */,
+				B2A1FE342EB9894B00BF3386 /* ITunesSearchClient.swift in Sources */,
 				58419CB0330E1A175822386A /* MusicSearcher.swift in Sources */,
 				B28F69402EB7CB7400111E44 /* PreviewPlayer.swift in Sources */,
 				3F673C372E55C7709593F981 /* PlaylistCreator.swift in Sources */,
@@ -503,6 +510,7 @@
 				8A957476C6B7C02A888EA979 /* SettingsView.swift in Sources */,
 				5CFC64508A16BD362993486E /* MatchSelector.swift in Sources */,
 				818E3C754DC25638C59117C0 /* MatchSelectionViewModel.swift in Sources */,
+				B2A0D8F62EB982EC004C4895 /* RealMusicKitClient.swift in Sources */,
 				16C8D567AF138C44726A8A88 /* MatchCardView.swift in Sources */,
 				062478816111A73353FDE05C /* MatchSelectionView.swift in Sources */,
 			);

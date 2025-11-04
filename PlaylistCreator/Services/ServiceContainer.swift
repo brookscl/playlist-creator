@@ -44,7 +44,18 @@ class DefaultServiceContainer: ServiceContainer {
         register(AudioProcessor.self) { FileUploadService() }
         register(Transcriber.self) { WhisperTranscriptionService() }
         register(MusicExtractor.self) { OpenAIService(settingsManager: .shared) }
-        register(MusicSearcher.self) { DefaultMusicSearcher() }
+        if #available(macOS 12.0, *) {
+            // Use iTunes Search API (no registration required)
+            register(MusicSearcher.self) {
+                AppleMusicSearchService(musicKitClient: ITunesMusicKitClient())
+            }
+            // To use real MusicKit (requires Apple Developer registration):
+            // register(MusicSearcher.self) {
+            //     AppleMusicSearchService(musicKitClient: RealMusicKitClient())
+            // }
+        } else {
+            register(MusicSearcher.self) { DefaultMusicSearcher() }
+        }
         register(PlaylistCreator.self) { DefaultPlaylistCreator() }
     }
 }

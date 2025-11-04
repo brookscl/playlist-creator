@@ -82,36 +82,52 @@ class AVPreviewPlayer: PreviewPlayer, ObservableObject {
     // MARK: - PreviewPlayer Protocol
 
     func play(previewURL: URL) async throws {
+        print("🎧 AVPreviewPlayer.play() called with URL: \(previewURL)")
+
         // Stop any current playback
         stop()
 
         // Validate URL scheme
         guard previewURL.scheme == "http" || previewURL.scheme == "https" else {
+            print("❌ Invalid URL scheme: \(previewURL.scheme ?? "nil")")
             throw PreviewPlayerError.invalidURL
         }
+        print("✅ URL validation passed")
 
-        // Create player item
-        let item = AVPlayerItem(url: previewURL)
-        playerItem = item
-
-        // Create player
-        let newPlayer = AVPlayer(playerItem: item)
+        // Create player with URL directly (AVPlayer handles async loading automatically)
+        let newPlayer = AVPlayer(url: previewURL)
         player = newPlayer
+        print("✅ Created AVPlayer with URL")
 
-        // Wait for player to be ready
-        try await waitForPlayerReady(item: item)
-
-        // Update duration if available
-        if item.duration.isNumeric && !item.duration.isIndefinite {
-            duration = item.duration.seconds
+        // Enable automatic waiting (allows playback to start even while buffering)
+        if #available(macOS 10.15, *) {
+            newPlayer.automaticallyWaitsToMinimizeStalling = true
         }
 
-        // Start playback
+        // Set volume
+        newPlayer.volume = 1.0
+        print("✅ Set volume to 1.0")
+
+        // Start playback (AVPlayer will buffer and play automatically)
         newPlayer.play()
         isPlaying = true
+        print("▶️ Playback started! AVPlayer will buffer automatically")
 
         // Add time observer for progress updates
         addTimeObserver()
+        print("✅ Time observer added")
+
+        // Monitor for when duration becomes available
+        Task {
+            await MainActor.run {
+                if let item = newPlayer.currentItem {
+                    if item.duration.isNumeric && !item.duration.isIndefinite {
+                        self.duration = item.duration.seconds
+                        print("✅ Duration available: \(self.duration) seconds")
+                    }
+                }
+            }
+        }
     }
 
     func pause() {
@@ -136,32 +152,62 @@ class AVPreviewPlayer: PreviewPlayer, ObservableObject {
     // MARK: - Private Methods
 
     private func waitForPlayerReady(item: AVPlayerItem) async throws {
+        print("📊 Current item status: \(item.status.rawValue)")
+
         // Check if already ready
         if item.status == .readyToPlay {
+            print("✅ Already ready!")
             return
         }
 
-        // Wait for status to change
-        for await status in item.publisher(for: \.status).values {
-            switch status {
-            case .readyToPlay:
-                return
-            case .failed:
-                if let error = item.error as? NSError {
-                    // Check for network errors
-                    if error.domain == NSURLErrorDomain {
-                        throw PreviewPlayerError.networkError
-                    }
-                }
-                throw PreviewPlayerError.loadFailed
-            case .unknown:
-                continue
-            @unknown default:
-                continue
+        // Check if already failed
+        if item.status == .failed {
+            print("❌ Already failed! Error: \(item.error?.localizedDescription ?? "unknown")")
+            if let error = item.error {
+                print("   Error domain: \((error as NSError).domain)")
+                print("   Error code: \((error as NSError).code)")
             }
+            throw PreviewPlayerError.loadFailed
         }
 
-        throw PreviewPlayerError.loadFailed
+        // Wait for status to change with timeout
+        print("⏳ Waiting for status change...")
+        let timeoutTask = Task {
+            try await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+            print("⏰ Timeout reached!")
+        }
+
+        let statusTask = Task {
+            for await status in item.publisher(for: \.status).values {
+                print("📊 Status changed to: \(status.rawValue)")
+                switch status {
+                case .readyToPlay:
+                    print("✅ Status is now ready!")
+                    return
+                case .failed:
+                    print("❌ Status changed to failed!")
+                    if let error = item.error {
+                        print("   Error: \(error.localizedDescription)")
+                        print("   Domain: \((error as NSError).domain)")
+                        print("   Code: \((error as NSError).code)")
+                        if (error as NSError).domain == NSURLErrorDomain {
+                            throw PreviewPlayerError.networkError
+                        }
+                    }
+                    throw PreviewPlayerError.loadFailed
+                case .unknown:
+                    print("⚠️ Status is unknown, continuing...")
+                    continue
+                @unknown default:
+                    continue
+                }
+            }
+            throw PreviewPlayerError.loadFailed
+        }
+
+        // Race between status change and timeout
+        try await statusTask.value
+        timeoutTask.cancel()
     }
 
     private func addTimeObserver() {

@@ -81,6 +81,34 @@ class WorkflowViewModel: ObservableObject {
         currentPhase = .musicSearch
         isProcessing = true
         progress = 0.0
+        statusMessage = "Requesting Apple Music access..."
+
+        // Request authorization if needed
+        print("🔍 Checking MusicSearcher type: \(type(of: musicSearcher))")
+
+        if #available(macOS 12.0, *) {
+            // Check for iTunes Search API client (no auth needed)
+            if let _ = musicSearcher as? AppleMusicSearchService<ITunesMusicKitClient> {
+                print("✅ Using iTunes Search API (no authorization required)")
+            }
+            // Check for real MusicKit client (requires auth)
+            else if let service = musicSearcher as? AppleMusicSearchService<RealMusicKitClient> {
+                print("✅ Using AppleMusicSearchService with RealMusicKitClient")
+                do {
+                    print("📱 Requesting Apple Music authorization...")
+                    try await service.requestAuthorization()
+                    print("✅ Apple Music authorization granted")
+                } catch {
+                    print("❌ Authorization failed: \(error)")
+                    currentPhase = .error("Apple Music authorization denied. Please allow access in System Settings.")
+                    isProcessing = false
+                    return
+                }
+            } else {
+                print("⚠️ Unknown MusicSearcher type")
+            }
+        }
+
         statusMessage = "Searching Apple Music catalog..."
 
         var allMatches: [MatchedSong] = []
@@ -101,6 +129,9 @@ class WorkflowViewModel: ObservableObject {
                         original: song,
                         searchResult: bestResult
                     )
+                    print("✅ Created match: \(match.appleMusicSong.title) by \(match.appleMusicSong.artist)")
+                    print("   Preview URL: \(match.previewURL?.absoluteString ?? "NONE")")
+                    print("   Confidence: \(Int(match.confidence * 100))%")
                     allMatches.append(match)
                 } else {
                     // No results found - create a match with status pending for user review
@@ -119,7 +150,18 @@ class WorkflowViewModel: ObservableObject {
                 }
             } catch {
                 // Search failed for this song - skip it
-                print("Search failed for \(song.title) by \(song.artist): \(error)")
+                let errorMessage = "Search failed for \(song.title) by \(song.artist): \(error)"
+                print(errorMessage)
+
+                // Get detailed error info
+                if let musicError = error as? MusicSearchError {
+                    print("  MusicSearchError type: \(musicError)")
+                    print("  Description: \(musicError.localizedDescription)")
+                } else {
+                    print("  Error type: \(type(of: error))")
+                    print("  Description: \(error.localizedDescription)")
+                }
+
                 let noMatchSong = Song(
                     title: "Search failed",
                     artist: song.artist,

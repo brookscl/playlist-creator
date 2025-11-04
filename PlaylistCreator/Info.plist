@@ -24,6 +24,8 @@
 	<string>13.0</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2024. All rights reserved.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app needs access to Apple Music to search for songs and create playlists based on your audio content.</string>
 	<key>NSRequiresAquaSystemAppearance</key>
 	<false/>
 	<key>NSSupportsAutomaticTermination</key>
