@@ -55,7 +55,24 @@ class DefaultServiceContainer: ServiceContainer {
             // }
 
             // Use real MusicKit for playlist creation
-            register(PlaylistCreator.self) { AppleMusicPlaylistService() }
+            // Note: Requires developer credentials to be configured
+            // For now, use mock until credentials are set up
+            register(PlaylistCreator.self) { MockPlaylistCreator() }
+
+            // To use real Apple Music API:
+            // 1. Set up developer credentials (see docs/apple-music-api-setup.md)
+            // 2. Uncomment and configure:
+            // register(PlaylistCreator.self) {
+            //     do {
+            //         let config = try AppleMusicConfig.loadFromEnvironment()
+            //         let apiClient = try config.buildAPIClient()
+            //         let wrapper = RealMusicKitWrapper(apiClient: apiClient)
+            //         return AppleMusicPlaylistService(musicKitWrapper: wrapper)
+            //     } catch {
+            //         print("⚠️ Failed to configure Apple Music API: \(error)")
+            //         return MockPlaylistCreator()
+            //     }
+            // }
         } else {
             register(MusicSearcher.self) { DefaultMusicSearcher() }
             register(PlaylistCreator.self) { DefaultPlaylistCreator() }

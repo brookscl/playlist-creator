@@ -9,6 +9,7 @@ protocol MusicKitWrapperProtocol {
     func addSongs(to playlistID: String, songIDs: [String]) async throws
     func deletePlaylist(_ playlistID: String) async throws
     var currentAuthorizationStatus: MusicAuthorization.Status { get }
+    var userToken: String? { get }
 }
 
 // MARK: - Apple Music Playlist Service
@@ -28,11 +29,6 @@ class AppleMusicPlaylistService: PlaylistCreator {
     /// Initialize with a MusicKitWrapper (for dependency injection and testing)
     init(musicKitWrapper: MusicKitWrapperProtocol) {
         self.musicKitWrapper = musicKitWrapper
-    }
-
-    /// Initialize with default real MusicKit implementation
-    convenience init() {
-        self.init(musicKitWrapper: RealMusicKitWrapper())
     }
 
     // MARK: - PlaylistCreator Protocol Implementation
@@ -157,8 +153,22 @@ class AppleMusicPlaylistService: PlaylistCreator {
 
 @available(macOS 12.0, *)
 class RealMusicKitWrapper: MusicKitWrapperProtocol {
+    private let apiClient: AppleMusicAPIClient
+
+    init(apiClient: AppleMusicAPIClient) {
+        self.apiClient = apiClient
+    }
+
     var currentAuthorizationStatus: MusicAuthorization.Status {
         return MusicAuthorization.currentStatus
+    }
+
+    var userToken: String? {
+        // Get user token from MusicKit
+        // Note: This property is synchronous, but getting the token requires async calls
+        // The actual token retrieval is handled by apiClient.getUserToken() in async contexts
+        // This property is primarily for the protocol conformance
+        return nil
     }
 
     func requestAuthorization() async throws -> Bool {
@@ -167,34 +177,69 @@ class RealMusicKitWrapper: MusicKitWrapperProtocol {
     }
 
     func createPlaylist(name: String, description: String?, songIDs: [String]) async throws -> (id: String, url: URL?) {
-        // Note: MusicKit's library playlist creation API is limited on macOS
-        // This implementation requires Apple Music subscription and proper entitlements
-
-        print("📝 Creating playlist '\(name)' with \(songIDs.count) songs")
+        print("📝 Creating playlist '\(name)' with \(songIDs.count) songs via Apple Music API")
         print("   Description: \(description ?? "none")")
 
-        // For now, this is a placeholder implementation
-        // Full implementation requires:
-        // 1. Apple Music subscription check
-        // 2. Proper entitlements in Info.plist
-        // 3. iOS-style playlist creation APIs which may not be available on macOS
+        do {
+            let result = try await apiClient.createPlaylist(
+                name: name,
+                description: description,
+                songIDs: songIDs
+            )
 
-        // Return a mock response for now
-        // TODO: Implement actual playlist creation when MusicKit library APIs are fully available
-        throw PlaylistCreationError.creationFailed("Playlist creation via MusicKit is not yet fully implemented for macOS. Please use the iOS version or wait for full macOS support.")
+            print("✅ Playlist created: \(result.id)")
+            if let url = result.url {
+                print("   URL: \(url.absoluteString)")
+            }
+
+            return result
+        } catch let error as AppleMusicAPIError {
+            print("❌ API Error: \(error.localizedDescription)")
+            throw convertAPIError(error)
+        } catch {
+            print("❌ Unexpected error: \(error)")
+            throw PlaylistCreationError.creationFailed(error.localizedDescription)
+        }
     }
 
     func addSongs(to playlistID: String, songIDs: [String]) async throws {
         print("➕ Adding \(songIDs.count) songs to playlist \(playlistID)")
 
-        // Placeholder - actual implementation requires MusicKit library APIs
-        throw PlaylistCreationError.songAdditionFailed("Song addition via MusicKit is not yet fully implemented for macOS")
+        do {
+            try await apiClient.addSongs(to: playlistID, songIDs: songIDs)
+            print("✅ Songs added successfully")
+        } catch let error as AppleMusicAPIError {
+            print("❌ API Error: \(error.localizedDescription)")
+            throw convertAPIError(error)
+        } catch {
+            print("❌ Unexpected error: \(error)")
+            throw PlaylistCreationError.songAdditionFailed(error.localizedDescription)
+        }
     }
 
     func deletePlaylist(_ playlistID: String) async throws {
         print("🗑️ Deleting playlist \(playlistID)")
-
-        // Placeholder - actual implementation requires MusicKit library APIs
+        // Note: Deletion is not typically needed for this app
+        // but we keep it for completeness
         throw PlaylistCreationError.playlistNotFound(playlistID)
+    }
+
+    // MARK: - Error Conversion
+
+    private func convertAPIError(_ error: AppleMusicAPIError) -> PlaylistCreationError {
+        switch error {
+        case .notAuthorized, .unauthorized:
+            return .authenticationRequired
+        case .noUserToken:
+            return .authenticationRequired
+        case .rateLimitExceeded:
+            return .creationFailed("Rate limit exceeded. Please try again later.")
+        case .playlistNotFound:
+            return .playlistNotFound("Playlist not found")
+        case .networkError:
+            return .creationFailed("Network error occurred")
+        case .invalidURL, .invalidResponse:
+            return .creationFailed("Invalid response from Apple Music")
+        }
     }
 }

@@ -397,6 +397,7 @@ class MockMusicKitWrapper: MusicKitWrapperProtocol {
     var lastPlaylistDescription: String?
     var lastAddedSongIDs: [String] = []
     var lastDeletedPlaylistID: String?
+    var userToken: String? = "mock.user.token"
 
     var currentAuthorizationStatus: MusicAuthorization.Status {
         return authorizationStatus
