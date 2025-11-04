@@ -53,10 +53,13 @@ class DefaultServiceContainer: ServiceContainer {
             // register(MusicSearcher.self) {
             //     AppleMusicSearchService(musicKitClient: RealMusicKitClient())
             // }
+
+            // Use real MusicKit for playlist creation
+            register(PlaylistCreator.self) { AppleMusicPlaylistService() }
         } else {
             register(MusicSearcher.self) { DefaultMusicSearcher() }
+            register(PlaylistCreator.self) { DefaultPlaylistCreator() }
         }
-        register(PlaylistCreator.self) { DefaultPlaylistCreator() }
     }
 }
 

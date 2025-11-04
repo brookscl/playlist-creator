@@ -98,10 +98,20 @@ final class ServiceContainerTests: XCTestCase {
         XCTAssertTrue(musicExtractor is OpenAIService)
 
         let musicSearcher = container.resolve(MusicSearcher.self)
-        XCTAssertTrue(musicSearcher is DefaultMusicSearcher)
+        // On macOS 12.0+, production uses AppleMusicSearchService, otherwise DefaultMusicSearcher
+        if #available(macOS 12.0, *) {
+            XCTAssertTrue(musicSearcher is AppleMusicSearchService)
+        } else {
+            XCTAssertTrue(musicSearcher is DefaultMusicSearcher)
+        }
 
         let playlistCreator = container.resolve(PlaylistCreator.self)
-        XCTAssertTrue(playlistCreator is DefaultPlaylistCreator)
+        // On macOS 12.0+, production uses AppleMusicPlaylistService, otherwise DefaultPlaylistCreator
+        if #available(macOS 12.0, *) {
+            XCTAssertTrue(playlistCreator is AppleMusicPlaylistService)
+        } else {
+            XCTAssertTrue(playlistCreator is DefaultPlaylistCreator)
+        }
     }
     
     func testConfigurationOverride() throws {
