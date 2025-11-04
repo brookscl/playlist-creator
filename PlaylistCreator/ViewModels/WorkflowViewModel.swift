@@ -34,13 +34,20 @@ class WorkflowViewModel: ObservableObject {
 
     private let musicExtractor: MusicExtractor
     private let musicSearcher: MusicSearcher
+    private let playlistCreator: PlaylistCreator
+
+    // Playlist result
+    @Published var createdPlaylist: CreatedPlaylist?
+    @Published var playlistError: String?
 
     // MARK: - Initialization
 
     init(musicExtractor: MusicExtractor = serviceContainer.resolve(MusicExtractor.self),
-         musicSearcher: MusicSearcher = serviceContainer.resolve(MusicSearcher.self)) {
+         musicSearcher: MusicSearcher = serviceContainer.resolve(MusicSearcher.self),
+         playlistCreator: PlaylistCreator = serviceContainer.resolve(PlaylistCreator.self)) {
         self.musicExtractor = musicExtractor
         self.musicSearcher = musicSearcher
+        self.playlistCreator = playlistCreator
     }
 
     // MARK: - Workflow Control
@@ -190,14 +197,63 @@ class WorkflowViewModel: ObservableObject {
     }
 
     /// Called when user finishes reviewing matches
-    func completeMatchSelection() {
-        // For now, just mark as complete
-        // In Week 7, this will create the actual playlist
-        currentPhase = .complete
-        isProcessing = false
+    func completeMatchSelection() async {
+        await createPlaylist()
+    }
 
-        let selectedCount = matchedSongs.filter { $0.isIncludedInPlaylist }.count
-        statusMessage = "Selected \(selectedCount) songs for playlist"
+    /// Phase 3: Create playlist in Apple Music
+    private func createPlaylist() async {
+        currentPhase = .playlistCreation
+        isProcessing = true
+        progress = 0.0
+        statusMessage = "Creating playlist..."
+
+        // Get selected songs only
+        let selectedSongs = matchedSongs.filter { $0.isIncludedInPlaylist }
+
+        guard !selectedSongs.isEmpty else {
+            currentPhase = .error("No songs selected for playlist")
+            isProcessing = false
+            return
+        }
+
+        // Generate playlist name
+        let playlistName = generatePlaylistName()
+        statusMessage = "Creating '\(playlistName)' with \(selectedSongs.count) songs..."
+
+        do {
+            // Create the playlist
+            let playlist = try await playlistCreator.createPlaylist(
+                name: playlistName,
+                songs: selectedSongs
+            )
+
+            createdPlaylist = playlist
+            progress = 1.0
+            statusMessage = "Playlist created successfully!"
+
+            // Move to complete phase
+            currentPhase = .complete
+            isProcessing = false
+
+        } catch {
+            print("❌ Playlist creation failed: \(error)")
+
+            // Handle the error
+            playlistError = error.localizedDescription
+            currentPhase = .error("Failed to create playlist: \(error.localizedDescription)")
+            isProcessing = false
+        }
+    }
+
+    /// Generate a meaningful playlist name
+    private func generatePlaylistName() -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+
+        let dateString = formatter.string(from: Date())
+        return "Playlist Creator - \(dateString)"
     }
 
     /// Reset the entire workflow

@@ -54,7 +54,9 @@ struct ContentView: View {
                 MatchSelectionView(
                     matches: workflowViewModel.matchedSongs,
                     onComplete: {
-                        workflowViewModel.completeMatchSelection()
+                        Task {
+                            await workflowViewModel.completeMatchSelection()
+                        }
                     }
                 )
             }
@@ -85,24 +87,50 @@ struct ContentView: View {
     }
 
     private var completionView: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 24) {
             Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 48))
+                .font(.system(size: 64))
                 .foregroundColor(.green)
 
-            Text("Workflow Complete!")
-                .font(.headline)
+            Text("Playlist Created!")
+                .font(.title)
+                .fontWeight(.bold)
 
-            Text(workflowViewModel.statusMessage)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            if let playlist = workflowViewModel.createdPlaylist {
+                VStack(spacing: 12) {
+                    Text(playlist.name)
+                        .font(.title2)
+                        .multilineTextAlignment(.center)
 
-            Button("Start Over") {
+                    Text("\(playlist.songCount) song\(playlist.songCount == 1 ? "" : "s")")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+
+                    if let url = playlist.url {
+                        Button(action: {
+                            NSWorkspace.shared.open(url)
+                        }) {
+                            Label("Open in Apple Music", systemImage: "music.note")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                    }
+                }
+                .padding()
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(12)
+            } else {
+                Text(workflowViewModel.statusMessage)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+
+            Button("Create Another Playlist") {
                 workflowViewModel.reset()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
         }
-        .padding()
+        .padding(32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
