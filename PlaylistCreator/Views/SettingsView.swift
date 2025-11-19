@@ -5,8 +5,43 @@ struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
 
     var body: some View {
+        #if os(iOS)
+        NavigationView {
+            settingsContent
+                .navigationTitle("Settings")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Save") {
+                            viewModel.saveSettings()
+                            if viewModel.errorMessage.isEmpty {
+                                dismiss()
+                            }
+                        }
+                        .disabled(!viewModel.hasChanges)
+                    }
+                    ToolbarItem(placement: .bottomBar) {
+                        Button("Clear All") {
+                            viewModel.clearAllSettings()
+                        }
+                        .foregroundColor(.red)
+                    }
+                }
+        }
+        #else
+        settingsContent
+        #endif
+    }
+
+    private var settingsContent: some View {
         VStack(spacing: 0) {
-            // Header
+            #if os(macOS)
+            // Header (macOS only)
             HStack {
                 Text("Settings")
                     .font(.title)
@@ -17,6 +52,7 @@ struct SettingsView: View {
             .background(Color(NSColor.controlBackgroundColor))
 
             Divider()
+            #endif
 
             // Settings Content
             Form {
@@ -133,9 +169,10 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .padding()
 
+            #if os(macOS)
             Divider()
 
-            // Action Buttons
+            // Action Buttons (macOS only - iOS uses toolbar buttons)
             HStack {
                 Button("Clear All") {
                     viewModel.clearAllSettings()
@@ -161,8 +198,13 @@ struct SettingsView: View {
             }
             .padding()
             .background(Color(NSColor.controlBackgroundColor))
+            #endif
         }
+        #if os(macOS)
         .frame(width: 600, height: 550)
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #endif
         .onAppear {
             viewModel.loadSettings()
         }

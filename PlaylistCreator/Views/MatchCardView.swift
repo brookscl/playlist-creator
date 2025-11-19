@@ -253,11 +253,17 @@ struct MatchCardView: View {
     }
 
     private var cardBackground: some View {
-        Color(NSColor.controlBackgroundColor)
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-            )
+        Group {
+            #if os(macOS)
+            Color(NSColor.controlBackgroundColor)
+            #else
+            Color(UIColor.systemBackground)
+            #endif
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
     }
 
     private var shadowColor: Color {

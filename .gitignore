@@ -95,3 +95,9 @@ iOSInjectionProject/
 # Temporary files
 project-minimal.yml
 PlaylistCreator/Info-minimal.plist
+
+# Environment variables and credentials
+.env
+*.p8
+*.key
+*.pem

@@ -62,7 +62,11 @@ struct MatchSelectionView: View {
             progressBar
         }
         .padding()
+        #if os(macOS)
         .background(Color(NSColor.controlBackgroundColor))
+        #else
+        .background(Color(UIColor.systemBackground))
+        #endif
     }
 
     private var progressBar: some View {
@@ -166,7 +170,11 @@ struct MatchSelectionView: View {
             }
         }
         .padding()
+        #if os(macOS)
         .background(Color(NSColor.controlBackgroundColor))
+        #else
+        .background(Color(UIColor.systemBackground))
+        #endif
         .cornerRadius(12)
     }
 
@@ -234,7 +242,11 @@ struct MatchSelectionView: View {
             }
         }
         .padding()
+        #if os(macOS)
         .background(Color(NSColor.controlBackgroundColor))
+        #else
+        .background(Color(UIColor.systemBackground))
+        #endif
     }
 }
 

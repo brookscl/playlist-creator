@@ -14,6 +14,7 @@ class WhisperTranscriptionService: Transcriber {
     private let whisperCLIPath: String
     private let modelPath: String?
     private let transcriptProcessor: TranscriptProcessor
+    private let settingsManager: SettingsManager
     var maxRetries = 3
     var progressCallback: ((Double) -> Void)?
 
@@ -21,10 +22,12 @@ class WhisperTranscriptionService: Transcriber {
 
     init(whisperCLIPath: String = "/opt/homebrew/bin/whisper-cli",
          modelPath: String? = "/Users/chrisbrooks/bin/ggml-large-v3-turbo-q8_0.bin",
-         transcriptProcessor: TranscriptProcessor = TranscriptProcessor()) {
+         transcriptProcessor: TranscriptProcessor = TranscriptProcessor(),
+         settingsManager: SettingsManager = .shared) {
         self.whisperCLIPath = whisperCLIPath
         self.modelPath = modelPath
         self.transcriptProcessor = transcriptProcessor
+        self.settingsManager = settingsManager
     }
 
     // MARK: - Transcriber Protocol
@@ -168,6 +171,10 @@ class WhisperTranscriptionService: Transcriber {
     }
 
     private func executeWhisperCLI(arguments: [String], includeTimestamps: Bool, audioURL: URL, attempt: Int = 0) async throws -> Transcript {
+        #if os(iOS)
+        // Use OpenAI Whisper API on iOS
+        return try await transcribeViaAPI(audioURL: audioURL, includeTimestamps: includeTimestamps, attempt: attempt)
+        #else
         updateProgress(0.2)
 
         do {
@@ -219,6 +226,7 @@ class WhisperTranscriptionService: Transcriber {
             }
             throw TranscriptionError.apiRequestFailed(error.localizedDescription)
         }
+        #endif
     }
 
     private func parseWhisperJSONOutput(jsonURL: URL, includeTimestamps: Bool) throws -> Transcript {
@@ -310,6 +318,144 @@ class WhisperTranscriptionService: Transcriber {
             language: language,
             confidence: 0.9
         )
+    }
+
+    // MARK: - OpenAI Whisper API (iOS)
+
+    private func transcribeViaAPI(audioURL: URL, includeTimestamps: Bool, attempt: Int = 0) async throws -> Transcript {
+        updateProgress(0.2)
+
+        // Get API key
+        guard let apiKey = try? settingsManager.getAPIKey() else {
+            throw TranscriptionError.apiKeyMissing
+        }
+
+        updateProgress(0.3)
+
+        // Create multipart form data
+        let boundary = UUID().uuidString
+        var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        // Build multipart body
+        var body = Data()
+
+        // Add file
+        let audioData = try Data(contentsOf: audioURL)
+        let filename = audioURL.lastPathComponent
+        let mimetype = mimeType(for: audioURL)
+
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimetype)\r\n\r\n".data(using: .utf8)!)
+        body.append(audioData)
+        body.append("\r\n".data(using: .utf8)!)
+
+        // Add model
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
+        body.append("whisper-1\r\n".data(using: .utf8)!)
+
+        // Add response format (verbose_json for timestamps)
+        if includeTimestamps {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"response_format\"\r\n\r\n".data(using: .utf8)!)
+            body.append("verbose_json\r\n".data(using: .utf8)!)
+
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"timestamp_granularities[]\"\r\n\r\n".data(using: .utf8)!)
+            body.append("segment\r\n".data(using: .utf8)!)
+        } else {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"response_format\"\r\n\r\n".data(using: .utf8)!)
+            body.append("json\r\n".data(using: .utf8)!)
+        }
+
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+        request.httpBody = body
+
+        updateProgress(0.4)
+
+        // Make request
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw TranscriptionError.apiRequestFailed("Invalid response")
+            }
+
+            updateProgress(0.8)
+
+            guard (200...299).contains(httpResponse.statusCode) else {
+                let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+                throw TranscriptionError.apiRequestFailed("HTTP \(httpResponse.statusCode): \(errorMessage)")
+            }
+
+            // Parse response
+            let transcript = try parseOpenAIResponse(data: data, includeTimestamps: includeTimestamps)
+
+            updateProgress(1.0)
+
+            return transcript
+
+        } catch {
+            if attempt < maxRetries {
+                // Exponential backoff
+                let delay = pow(2.0, Double(attempt))
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                return try await transcribeViaAPI(audioURL: audioURL, includeTimestamps: includeTimestamps, attempt: attempt + 1)
+            }
+            throw TranscriptionError.apiRequestFailed(error.localizedDescription)
+        }
+    }
+
+    private func parseOpenAIResponse(data: Data, includeTimestamps: Bool) throws -> Transcript {
+        struct OpenAIResponse: Codable {
+            let text: String
+            let language: String?
+            let segments: [Segment]?
+
+            struct Segment: Codable {
+                let start: Double
+                let end: Double
+                let text: String
+            }
+        }
+
+        let response = try JSONDecoder().decode(OpenAIResponse.self, from: data)
+
+        var segments: [TranscriptSegment] = []
+        if includeTimestamps, let apiSegments = response.segments {
+            segments = apiSegments.map { segment in
+                TranscriptSegment(
+                    text: segment.text,
+                    startTime: segment.start,
+                    endTime: segment.end
+                )
+            }
+        }
+
+        return Transcript(
+            text: response.text.trimmingCharacters(in: .whitespaces),
+            segments: segments,
+            language: response.language ?? "en",
+            confidence: 0.9
+        )
+    }
+
+    private func mimeType(for url: URL) -> String {
+        let pathExtension = url.pathExtension.lowercased()
+        switch pathExtension {
+        case "mp3": return "audio/mpeg"
+        case "mp4", "m4a": return "audio/mp4"
+        case "wav": return "audio/wav"
+        case "webm": return "audio/webm"
+        case "ogg": return "audio/ogg"
+        default: return "application/octet-stream"
+        }
     }
 
     // MARK: - Progress Tracking

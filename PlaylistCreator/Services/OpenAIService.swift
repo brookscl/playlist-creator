@@ -39,7 +39,7 @@ struct OpenAIConfiguration {
 // MARK: - OpenAI Service
 
 class OpenAIService: MusicExtractor {
-    private let apiKey: String?
+    private let settingsManager: SettingsManager
     private let configuration: OpenAIConfiguration
     private let urlSession: URLSessionProtocol
     private let normalizer: MusicDataNormalizer
@@ -50,33 +50,55 @@ class OpenAIService: MusicExtractor {
          model: String = "gpt-4",
          urlSession: URLSessionProtocol = URLSession.shared,
          normalizer: MusicDataNormalizer = MusicDataNormalizer()) {
-        self.apiKey = apiKey
+        // For backwards compatibility with tests
+        self.settingsManager = SettingsManager()
         self.configuration = OpenAIConfiguration(model: model)
         self.urlSession = urlSession
         self.normalizer = normalizer
+
+        // Store the provided API key if given
+        if let apiKey = apiKey {
+            try? settingsManager.saveAPIKey(apiKey)
+        }
     }
 
     init(apiKey: String?,
          configuration: OpenAIConfiguration,
          urlSession: URLSessionProtocol = URLSession.shared,
          normalizer: MusicDataNormalizer = MusicDataNormalizer()) {
-        self.apiKey = apiKey
+        // For backwards compatibility with tests
+        self.settingsManager = SettingsManager()
         self.configuration = configuration
         self.urlSession = urlSession
         self.normalizer = normalizer
+
+        // Store the provided API key if given
+        if let apiKey = apiKey {
+            try? settingsManager.saveAPIKey(apiKey)
+        }
     }
 
-    // Convenience initializer using SettingsManager
+    // Convenience initializer using SettingsManager (RECOMMENDED)
     convenience init(settingsManager: SettingsManager = .shared,
                      urlSession: URLSessionProtocol = URLSession.shared,
                      normalizer: MusicDataNormalizer = MusicDataNormalizer()) {
-        let apiKey = try? settingsManager.getAPIKey()
         let configuration = OpenAIConfiguration(
             model: settingsManager.openAIModel,
             temperature: settingsManager.openAITemperature,
             maxTokens: settingsManager.openAIMaxTokens
         )
-        self.init(apiKey: apiKey, configuration: configuration, urlSession: urlSession, normalizer: normalizer)
+        self.init(settingsManager: settingsManager, configuration: configuration, urlSession: urlSession, normalizer: normalizer)
+    }
+
+    // Primary initializer that stores SettingsManager reference
+    init(settingsManager: SettingsManager,
+         configuration: OpenAIConfiguration,
+         urlSession: URLSessionProtocol = URLSession.shared,
+         normalizer: MusicDataNormalizer = MusicDataNormalizer()) {
+        self.settingsManager = settingsManager
+        self.configuration = configuration
+        self.urlSession = urlSession
+        self.normalizer = normalizer
     }
 
     // MARK: - MusicExtractor Protocol
@@ -87,15 +109,19 @@ class OpenAIService: MusicExtractor {
     }
 
     func extractSongsWithContext(from transcript: Transcript) async throws -> [ExtractedSong] {
-        guard apiKey != nil else {
+        // Get API key from settings at time of use (not cached at initialization)
+        guard let apiKey = try? settingsManager.getAPIKey(), !apiKey.isEmpty else {
+            print("❌ OpenAI API key not found in settings")
             throw MusicExtractionError.apiKeyMissing
         }
+
+        print("✅ Retrieved OpenAI API key from settings")
 
         // Apply rate limiting
         await applyRateLimit()
 
         // Build and send request with retry logic
-        let response = try await sendRequestWithRetry(transcript: transcript)
+        let response = try await sendRequestWithRetry(transcript: transcript, apiKey: apiKey)
 
         // Parse response
         return try parseResponse(response)
@@ -120,14 +146,14 @@ class OpenAIService: MusicExtractor {
 
     // MARK: - Request Building
 
-    private func buildRequest(transcript: Transcript) throws -> URLRequest {
+    private func buildRequest(transcript: Transcript, apiKey: String) throws -> URLRequest {
         guard let url = URL(string: apiEndpoint) else {
             throw MusicExtractionError.apiRequestFailed("Invalid API endpoint")
         }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey ?? "")", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = configuration.timeout
 
@@ -200,9 +226,9 @@ class OpenAIService: MusicExtractor {
 
     // MARK: - Request Sending with Retry
 
-    private func sendRequestWithRetry(transcript: Transcript, attempt: Int = 0) async throws -> OpenAIResponse {
+    private func sendRequestWithRetry(transcript: Transcript, apiKey: String, attempt: Int = 0) async throws -> OpenAIResponse {
         do {
-            let request = try buildRequest(transcript: transcript)
+            let request = try buildRequest(transcript: transcript, apiKey: apiKey)
             let (data, response) = try await urlSession.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
@@ -231,7 +257,7 @@ class OpenAIService: MusicExtractor {
             if attempt < configuration.maxRetries {
                 let delay = configuration.retryDelay * pow(2.0, Double(attempt))
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                return try await sendRequestWithRetry(transcript: transcript, attempt: attempt + 1)
+                return try await sendRequestWithRetry(transcript: transcript, apiKey: apiKey, attempt: attempt + 1)
             }
 
             throw error
@@ -241,7 +267,7 @@ class OpenAIService: MusicExtractor {
             if attempt < configuration.maxRetries {
                 let delay = configuration.retryDelay * pow(2.0, Double(attempt))
                 try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                return try await sendRequestWithRetry(transcript: transcript, attempt: attempt + 1)
+                return try await sendRequestWithRetry(transcript: transcript, apiKey: apiKey, attempt: attempt + 1)
             }
 
             throw MusicExtractionError.apiRequestFailed(error.localizedDescription)

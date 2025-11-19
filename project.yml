@@ -1,8 +1,8 @@
 name: PlaylistCreator
 options:
-  bundleIdPrefix: com.chrisbrooks
+  bundleIdPrefix: org.chrisbrooks
   deploymentTarget:
-    macOS: "13.0"
+    iOS: "17.0"
   developmentLanguage: en
 
 settings:
@@ -12,7 +12,7 @@ settings:
 targets:
   PlaylistCreator:
     type: application
-    platform: macOS
+    platform: iOS
     sources:
       - path: PlaylistCreator
         excludes:
@@ -22,45 +22,53 @@ targets:
       properties:
         CFBundleDisplayName: Playlist Creator
         CFBundleExecutable: PlaylistCreator
-        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleIdentifier: org.chrisbrooks.playlistcreator
         CFBundleInfoDictionaryVersion: "6.0"
         CFBundleName: PlaylistCreator
         CFBundlePackageType: APPL
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        LSMinimumSystemVersion: "13.0"
+        UILaunchStoryboardName: LaunchScreen
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
         NSHumanReadableCopyright: "Copyright © 2024. All rights reserved."
-        NSSupportsAutomaticTermination: true
-        NSSupportsSuddenTermination: true
-        NSRequiresAquaSystemAppearance: false
+        NSAppleMusicUsageDescription: "This app needs access to Apple Music to search for songs and create playlists based on your audio content."
+        NSMicrophoneUsageDescription: "This app needs access to the microphone to record audio for transcription."
+        NSPhotoLibraryUsageDescription: "This app needs access to your photo library to import video files."
+        MusicKitDeveloperTeamIdentifier: "JFK2G5292Q"
     settings:
       PRODUCT_NAME: PlaylistCreator
-      PRODUCT_BUNDLE_IDENTIFIER: com.chrisbrooks.PlaylistCreator
+      PRODUCT_BUNDLE_IDENTIFIER: org.chrisbrooks.playlistcreator
       INFOPLIST_FILE: PlaylistCreator/Info.plist
+      CODE_SIGN_ENTITLEMENTS: PlaylistCreator/PlaylistCreator.entitlements
       CODE_SIGN_STYLE: Automatic
-      CODE_SIGN_IDENTITY: "-"
-      DEVELOPMENT_TEAM: ""
-      COMBINE_HIDPI_IMAGES: true
+      DEVELOPMENT_TEAM: "JFK2G5292Q"
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       DEVELOPMENT_ASSET_PATHS: PlaylistCreator/Preview\ Content
       ENABLE_PREVIEWS: true
       SWIFT_VERSION: "5.0"
-      TARGETED_DEVICE_FAMILY: "2"
+      TARGETED_DEVICE_FAMILY: "1,2"
       SUPPORTS_MACCATALYST: false
-      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: false
 
   PlaylistCreatorTests:
     type: bundle.unit-test
-    platform: macOS
+    platform: iOS
     sources:
       - path: PlaylistCreatorTests
     dependencies:
       - target: PlaylistCreator
     settings:
       PRODUCT_NAME: PlaylistCreatorTests
-      PRODUCT_BUNDLE_IDENTIFIER: com.chrisbrooks.PlaylistCreatorTests
+      PRODUCT_BUNDLE_IDENTIFIER: org.chrisbrooks.playlistcreatorTests
       BUNDLE_LOADER: $(TEST_HOST)
-      TEST_HOST: $(BUILT_PRODUCTS_DIR)/PlaylistCreator.app/Contents/MacOS/PlaylistCreator
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/PlaylistCreator.app/PlaylistCreator
       GENERATE_INFOPLIST_FILE: true
 
 schemes:

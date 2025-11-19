@@ -78,7 +78,15 @@ class FileUploadService: AudioProcessor {
     
     func processFileUpload(_ url: URL) async throws -> ProcessedAudio {
         updateProgress(0.0)
-        
+
+        // Start accessing security-scoped resource (required for Files app/iCloud)
+        let isAccessing = url.startAccessingSecurityScopedResource()
+        defer {
+            if isAccessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
         // Validate file
         let validation = validateFile(url)
         let fileValidation: FileValidation
@@ -91,9 +99,9 @@ class FileUploadService: AudioProcessor {
                 throw AudioProcessingError.unsupportedFormat(validationResult.fileExtension)
             }
         }
-        
+
         updateProgress(0.2)
-        
+
         // Create temporary copy
         let tempURL = try createTemporaryFile(from: url)
         updateProgress(0.4)

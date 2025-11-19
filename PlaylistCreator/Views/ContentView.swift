@@ -5,39 +5,33 @@ struct ContentView: View {
     @State private var showingSettings = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            // Header with settings button
-            HStack {
-                Text("Playlist Creator")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
+        NavigationView {
+            VStack(spacing: 20) {
+                Text("Create Apple Music playlists from audio content")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 8)
 
-                Spacer()
-
-                Button(action: { showingSettings = true }) {
-                    Image(systemName: "gear")
-                        .font(.title2)
-                }
-                .buttonStyle(.borderless)
-                .help("Settings")
+                // Show different views based on workflow phase
+                workflowContent
             }
-            .padding(.top)
-
-            Text("Create Apple Music playlists from audio content")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            // Show different views based on workflow phase
-            workflowContent
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding()
+            .navigationTitle("Playlist Creator")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingSettings = true }) {
+                        Image(systemName: "gear")
+                            .font(.title3)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView()
+            }
         }
-        .frame(minWidth: 600, minHeight: 500)
-        .padding()
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .showSettings)) { _ in
-            showingSettings = true
-        }
+        .navigationViewStyle(.stack)
     }
 
     @ViewBuilder
@@ -108,7 +102,11 @@ struct ContentView: View {
 
                     if let url = playlist.url {
                         Button(action: {
+                            #if os(macOS)
                             NSWorkspace.shared.open(url)
+                            #else
+                            UIApplication.shared.open(url)
+                            #endif
                         }) {
                             Label("Open in Apple Music", systemImage: "music.note")
                         }
