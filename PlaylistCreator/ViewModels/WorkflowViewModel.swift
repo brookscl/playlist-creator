@@ -197,7 +197,9 @@ class WorkflowViewModel: ObservableObject {
     }
 
     /// Called when user finishes reviewing matches
-    func completeMatchSelection() async {
+    func completeMatchSelection(with updatedMatches: [MatchedSong]) async {
+        // Update the matched songs with user selections
+        matchedSongs = updatedMatches
         await createPlaylist()
     }
 

@@ -47,9 +47,9 @@ struct ContentView: View {
             if !workflowViewModel.matchedSongs.isEmpty {
                 MatchSelectionView(
                     matches: workflowViewModel.matchedSongs,
-                    onComplete: {
+                    onComplete: { updatedMatches in
                         Task {
-                            await workflowViewModel.completeMatchSelection()
+                            await workflowViewModel.completeMatchSelection(with: updatedMatches)
                         }
                     }
                 )
