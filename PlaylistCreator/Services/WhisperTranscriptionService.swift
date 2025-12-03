@@ -330,6 +330,16 @@ class WhisperTranscriptionService: Transcriber {
             throw TranscriptionError.apiKeyMissing
         }
 
+        // Check file size - OpenAI Whisper API has 25 MB limit
+        let fileSize = try getFileSize(audioURL)
+        let maxFileSize: Int64 = 20 * 1024 * 1024 // 20 MB to be safe
+
+        if fileSize > maxFileSize {
+            // File is too large - need to chunk it
+            print("📦 Audio file is \(fileSize / 1024 / 1024) MB, exceeds API limit. Chunking...")
+            return try await transcribeViaAPIInChunks(audioURL: audioURL, includeTimestamps: includeTimestamps)
+        }
+
         updateProgress(0.3)
 
         // Create multipart form data
@@ -455,6 +465,251 @@ class WhisperTranscriptionService: Transcriber {
         case "webm": return "audio/webm"
         case "ogg": return "audio/ogg"
         default: return "application/octet-stream"
+        }
+    }
+
+    // MARK: - Chunking for Large Files
+
+    private func getFileSize(_ url: URL) throws -> Int64 {
+        let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+        return attributes[.size] as? Int64 ?? 0
+    }
+
+    private func transcribeViaAPIInChunks(audioURL: URL, includeTimestamps: Bool) async throws -> Transcript {
+        // Get audio duration
+        let asset = AVAsset(url: audioURL)
+        let duration = try await asset.load(.duration).seconds
+
+        // Calculate chunk duration based on file size
+        // Aim for ~15 MB chunks to stay well under 25 MB limit
+        let fileSize = try getFileSize(audioURL)
+        let targetChunkSize: Int64 = 15 * 1024 * 1024 // 15 MB
+        let estimatedBitrate = Double(fileSize) / duration // bytes per second
+        let chunkDuration = Double(targetChunkSize) / estimatedBitrate
+
+        print("📊 File: \(fileSize / 1024 / 1024) MB, Duration: \(Int(duration))s")
+        print("📊 Splitting into ~\(Int(chunkDuration))s chunks")
+
+        // Create chunks
+        var chunks: [AudioChunk] = []
+        var currentTime: TimeInterval = 0
+
+        while currentTime < duration {
+            let remainingDuration = duration - currentTime
+            let chunkLen = min(chunkDuration, remainingDuration)
+            chunks.append(AudioChunk(url: audioURL, startTime: currentTime, duration: chunkLen))
+            currentTime += chunkLen
+        }
+
+        print("📦 Created \(chunks.count) chunks")
+
+        // Process each chunk
+        var allSegments: [TranscriptSegment] = []
+        var fullText = ""
+
+        for (index, chunk) in chunks.enumerated() {
+            print("🎵 Processing chunk \(index + 1)/\(chunks.count) (\(Int(chunk.startTime))s - \(Int(chunk.startTime + chunk.duration))s)")
+
+            // Update progress
+            let chunkProgress = Double(index) / Double(chunks.count)
+            updateProgress(0.2 + (chunkProgress * 0.7))
+
+            // Extract chunk to temporary file
+            let chunkURL = try await extractAudioChunk(audioURL: audioURL, chunk: chunk)
+            defer {
+                try? FileManager.default.removeItem(at: chunkURL)
+            }
+
+            // Transcribe chunk
+            let chunkTranscript = try await transcribeViaAPISingleFile(audioURL: chunkURL, includeTimestamps: includeTimestamps)
+
+            // Adjust timestamps for chunk offset
+            let adjustedSegments = chunkTranscript.segments.map { segment in
+                TranscriptSegment(
+                    text: segment.text,
+                    startTime: segment.startTime + chunk.startTime,
+                    endTime: segment.endTime + chunk.startTime,
+                    confidence: segment.confidence
+                )
+            }
+
+            allSegments.append(contentsOf: adjustedSegments)
+            fullText += (fullText.isEmpty ? "" : " ") + chunkTranscript.text
+        }
+
+        updateProgress(0.95)
+
+        return Transcript(
+            text: fullText,
+            segments: allSegments,
+            language: allSegments.first.flatMap { _ in "en" },
+            confidence: 0.9
+        )
+    }
+
+    private func extractAudioChunk(audioURL: URL, chunk: AudioChunk) async throws -> URL {
+        let asset = AVAsset(url: audioURL)
+
+        // Determine appropriate output format based on input
+        let inputExtension = audioURL.pathExtension.lowercased()
+        let outputFileType: AVFileType
+        let outputExtension: String
+
+        switch inputExtension {
+        case "mp3":
+            outputFileType = .mp3
+            outputExtension = "mp3"
+        case "m4a", "mp4":
+            outputFileType = .m4a
+            outputExtension = "m4a"
+        case "wav":
+            outputFileType = .wav
+            outputExtension = "wav"
+        default:
+            // Default to m4a for compatibility
+            outputFileType = .m4a
+            outputExtension = "m4a"
+        }
+
+        // Create export session with passthrough preset (no transcoding)
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
+            throw TranscriptionError.apiRequestFailed("Failed to create export session for chunking")
+        }
+
+        // Set time range for chunk
+        let startTime = CMTime(seconds: chunk.startTime, preferredTimescale: 600)
+        let duration = CMTime(seconds: chunk.duration, preferredTimescale: 600)
+        let timeRange = CMTimeRange(start: startTime, duration: duration)
+        exportSession.timeRange = timeRange
+
+        // Output to temporary file with same format as input
+        let tempDir = FileManager.default.temporaryDirectory
+        let chunkFileName = "chunk_\(UUID().uuidString).\(outputExtension)"
+        let chunkURL = tempDir.appendingPathComponent(chunkFileName)
+        exportSession.outputURL = chunkURL
+        exportSession.outputFileType = outputFileType
+
+        print("📤 Exporting chunk to: \(chunkFileName) (format: \(outputFileType.rawValue))")
+
+        // Export
+        await exportSession.export()
+
+        guard exportSession.status == .completed else {
+            let errorDetail = exportSession.error?.localizedDescription ?? "unknown error"
+            print("❌ Export failed: \(errorDetail)")
+            print("   Status: \(exportSession.status.rawValue)")
+            throw TranscriptionError.apiRequestFailed("Failed to extract audio chunk: \(errorDetail)")
+        }
+
+        print("✅ Chunk exported successfully")
+        return chunkURL
+    }
+
+    private func transcribeViaAPISingleFile(audioURL: URL, includeTimestamps: Bool) async throws -> Transcript {
+        // Get API key
+        guard let apiKey = try? settingsManager.getAPIKey() else {
+            throw TranscriptionError.apiKeyMissing
+        }
+
+        // Create multipart form data
+        let boundary = UUID().uuidString
+        var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        // Build multipart body
+        var body = Data()
+
+        // Add file
+        let audioData = try Data(contentsOf: audioURL)
+        let filename = audioURL.lastPathComponent
+        let mimetype = mimeType(for: audioURL)
+
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: \(mimetype)\r\n\r\n".data(using: .utf8)!)
+        body.append(audioData)
+        body.append("\r\n".data(using: .utf8)!)
+
+        // Add model
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
+        body.append("whisper-1\r\n".data(using: .utf8)!)
+
+        // Add response format
+        if includeTimestamps {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"response_format\"\r\n\r\n".data(using: .utf8)!)
+            body.append("verbose_json\r\n".data(using: .utf8)!)
+
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"timestamp_granularities[]\"\r\n\r\n".data(using: .utf8)!)
+            body.append("segment\r\n".data(using: .utf8)!)
+        } else {
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"response_format\"\r\n\r\n".data(using: .utf8)!)
+            body.append("json\r\n".data(using: .utf8)!)
+        }
+
+        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+        request.httpBody = body
+
+        // Make request
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw TranscriptionError.apiRequestFailed("Invalid response")
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            throw TranscriptionError.apiRequestFailed("API returned status \(httpResponse.statusCode): \(errorMessage)")
+        }
+
+        // Parse response
+        let decoder = JSONDecoder()
+        if includeTimestamps {
+            struct VerboseResponse: Codable {
+                let text: String
+                let segments: [Segment]?
+                let language: String?
+
+                struct Segment: Codable {
+                    let start: Double
+                    let end: Double
+                    let text: String
+                }
+            }
+
+            let verboseResponse = try decoder.decode(VerboseResponse.self, from: data)
+            let segments = verboseResponse.segments?.map { segment in
+                TranscriptSegment(
+                    text: segment.text.trimmingCharacters(in: .whitespaces),
+                    startTime: segment.start,
+                    endTime: segment.end,
+                    confidence: 0.9
+                )
+            } ?? []
+
+            return Transcript(
+                text: verboseResponse.text.trimmingCharacters(in: .whitespaces),
+                segments: segments,
+                language: verboseResponse.language ?? "en",
+                confidence: 0.9
+            )
+        } else {
+            struct SimpleResponse: Codable {
+                let text: String
+            }
+
+            let simpleResponse = try decoder.decode(SimpleResponse.self, from: data)
+            return Transcript(
+                text: simpleResponse.text.trimmingCharacters(in: .whitespaces),
+                segments: [],
+                language: "en",
+                confidence: 0.9
+            )
         }
     }
 
