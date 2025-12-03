@@ -496,6 +496,42 @@
 **Note:** This was implemented early (before Week 7) to enable manual testing of all features built to date. The workflow currently stops at match selection completion - actual playlist creation via MusicKit will be added in Week 7.1.
 
 ### 6.4: Apple Music Search Integration & Preview Playback Fix ✅ COMPLETE
+
+### 6.5: Transcript File Upload Feature ✅ COMPLETE
+- [x] Design and implement TranscriptFileService for direct transcript upload
+- [x] Support multiple transcript formats (.txt, .json, .srt, .vtt)
+- [x] Implement plain text parser for simple transcripts
+- [x] Implement JSON parser with full Transcript model support
+- [x] Implement SRT subtitle parser with timestamp extraction
+- [x] Implement WebVTT caption parser with cue support
+- [x] Add URL download support for remote transcript files
+- [x] Write 31 comprehensive tests for all format parsers
+- [x] Update FileUploadView with third input mode "Transcript"
+- [x] Add transcript drag-and-drop upload area to UI
+- [x] Update FileUploadViewModel with processTranscript() method
+- [x] Make Transcript and TranscriptSegment Codable for JSON support
+- [x] Add file type validation for transcript formats
+- [x] Create sample transcript file for testing (8 songs)
+- [x] Write comprehensive feature documentation
+
+**Implementation Summary:**
+- Created TranscriptFileService (470 lines) with support for 4 file formats
+- Created TranscriptFileServiceTests (31 comprehensive tests)
+- Updated FileUploadView with segmented picker: Audio/Video | URL | Transcript
+- Bypasses expensive audio transcription (saves 2-10 minutes per test!)
+- Maintains chronological ordering from timestamped formats (SRT/VTT)
+- Enables workflows with podcast show notes, YouTube captions, manual transcripts
+- Sample transcript: TestFiles/sample-transcript.txt with 8 classic songs
+- Documentation: docs/transcript-feature.md
+
+**Benefits:**
+- Dramatically faster testing and development
+- Support for users with existing transcripts
+- Enable alternative content sources (show notes, captions, etc.)
+- No changes to existing audio/video workflow
+- All formats preserve timestamp data when available
+
+### 6.4 (renumbered): Apple Music Search Integration & Preview Playback Fix ✅ COMPLETE
 - [x] Implement iTunes Search API as free alternative to MusicKit catalog search
 - [x] Create RealMusicKitClient for future MusicKit integration
 - [x] Update ServiceContainer to use iTunes Search API by default
