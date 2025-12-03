@@ -5,12 +5,12 @@ protocol Transcriber {
     func transcribeWithTimestamps(_ audio: ProcessedAudio) async throws -> Transcript
 }
 
-struct Transcript: Equatable {
+struct Transcript: Equatable, Codable {
     let text: String
     let segments: [TranscriptSegment]
     let language: String?
     let confidence: Double
-    
+
     init(text: String, segments: [TranscriptSegment] = [], language: String? = nil, confidence: Double = 1.0) {
         self.text = text
         self.segments = segments
@@ -19,12 +19,12 @@ struct Transcript: Equatable {
     }
 }
 
-struct TranscriptSegment: Equatable {
+struct TranscriptSegment: Equatable, Codable {
     let text: String
     let startTime: TimeInterval
     let endTime: TimeInterval
     let confidence: Double
-    
+
     init(text: String, startTime: TimeInterval, endTime: TimeInterval, confidence: Double = 1.0) {
         self.text = text
         self.startTime = startTime

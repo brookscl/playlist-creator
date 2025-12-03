@@ -1,21 +1,29 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum InputMode {
+    case audioVideo
+    case url
+    case transcript
+}
+
 struct FileUploadView: View {
     @StateObject private var viewModel = FileUploadViewModel()
     @ObservedObject var workflowViewModel: WorkflowViewModel
     @State private var isDragOver = false
     @State private var showingFilePicker = false
+    @State private var showingTranscriptPicker = false
     @State private var urlInputText = ""
-    @State private var showURLInput = false
+    @State private var inputMode: InputMode = .audioVideo
 
     var body: some View {
         VStack(spacing: 20) {
-            // Toggle between file and URL input
+            // Toggle between file, URL, and transcript input
             if !viewModel.isProcessing && !viewModel.hasProcessedFile {
-                Picker("Input Method", selection: $showURLInput) {
-                    Text("File Upload").tag(false)
-                    Text("URL Input").tag(true)
+                Picker("Input Method", selection: $inputMode) {
+                    Text("Audio/Video").tag(InputMode.audioVideo)
+                    Text("URL").tag(InputMode.url)
+                    Text("Transcript").tag(InputMode.transcript)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
@@ -25,10 +33,15 @@ struct FileUploadView: View {
                 processingView
             } else if viewModel.hasProcessedFile {
                 successView
-            } else if showURLInput {
-                urlInputAreaView
             } else {
-                uploadAreaView
+                switch inputMode {
+                case .audioVideo:
+                    uploadAreaView
+                case .url:
+                    urlInputAreaView
+                case .transcript:
+                    transcriptUploadAreaView
+                }
             }
 
             if let errorMessage = viewModel.errorMessage {
@@ -42,6 +55,13 @@ struct FileUploadView: View {
             allowsMultipleSelection: false
         ) { result in
             handleFileSelection(result)
+        }
+        .fileImporter(
+            isPresented: $showingTranscriptPicker,
+            allowedContentTypes: allowedTranscriptTypes,
+            allowsMultipleSelection: false
+        ) { result in
+            handleTranscriptSelection(result)
         }
     }
     
@@ -78,6 +98,43 @@ struct FileUploadView: View {
         )
         .onDrop(of: allowedFileTypes, isTargeted: $isDragOver) { providers in
             handleDrop(providers: providers)
+        }
+        .animation(.easeInOut(duration: 0.2), value: isDragOver)
+    }
+
+    private var transcriptUploadAreaView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "doc.text")
+                .font(.system(size: 48))
+                .foregroundColor(isDragOver ? .accentColor : .secondary)
+
+            Text("Drop transcript file here")
+                .font(.headline)
+                .foregroundColor(isDragOver ? .accentColor : .primary)
+
+            Text("Supports .txt, .json, .srt, .vtt formats")
+                .font(.caption)
+                .foregroundColor(.secondary)
+
+            Button("Choose Transcript File") {
+                showingTranscriptPicker = true
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity, minHeight: 200)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(isDragOver ? Color.accentColor.opacity(0.1) : Color.secondary.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(
+                            isDragOver ? Color.accentColor : Color.secondary.opacity(0.3),
+                            style: StrokeStyle(lineWidth: 2, dash: [8, 4])
+                        )
+                )
+        )
+        .onDrop(of: allowedTranscriptTypes, isTargeted: $isDragOver) { providers in
+            handleTranscriptDrop(providers: providers)
         }
         .animation(.easeInOut(duration: 0.2), value: isDragOver)
     }
@@ -190,7 +247,7 @@ struct FileUploadView: View {
                 .font(.system(size: 48))
                 .foregroundColor(.green)
 
-            Text("File processed successfully!")
+            Text(viewModel.isTranscribing ? "File processed successfully!" : "Transcript loaded successfully!")
                 .font(.headline)
 
             if let fileName = viewModel.processedFileName {
@@ -337,8 +394,46 @@ struct FileUploadView: View {
         }
     }
 
+    private func handleTranscriptSelection(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            processTranscript(url)
+        case .failure(let error):
+            viewModel.setError("Transcript file selection failed: \(error.localizedDescription)")
+        }
+    }
+
+    private func handleTranscriptDrop(providers: [NSItemProvider]) -> Bool {
+        guard let provider = providers.first else { return false }
+
+        _ = provider.loadObject(ofClass: URL.self) { url, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    viewModel.setError("Drop failed: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let url = url else {
+                    viewModel.setError("Invalid file dropped")
+                    return
+                }
+
+                processTranscript(url)
+            }
+        }
+
+        return true
+    }
+
+    private func processTranscript(_ url: URL) {
+        Task {
+            await viewModel.processTranscript(url)
+        }
+    }
+
     // MARK: - Configuration
-    
+
     private var allowedFileTypes: [UTType] {
         [
             .audio,
@@ -349,6 +444,15 @@ struct FileUploadView: View {
             .wav,
             UTType(filenameExtension: "m4a") ?? .audio,
             UTType(filenameExtension: "aac") ?? .audio
+        ]
+    }
+
+    private var allowedTranscriptTypes: [UTType] {
+        [
+            .plainText,
+            .json,
+            UTType(filenameExtension: "srt") ?? .plainText,
+            UTType(filenameExtension: "vtt") ?? .plainText
         ]
     }
 }

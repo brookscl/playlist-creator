@@ -16,12 +16,15 @@ class FileUploadViewModel: ObservableObject {
 
     private let fileUploadService: FileUploadService
     private let transcriptionService: Transcriber
+    private let transcriptFileService: TranscriptFileService
     private var cancellables = Set<AnyCancellable>()
 
     init(fileUploadService: FileUploadService = FileUploadService(),
-         transcriptionService: Transcriber = serviceContainer.resolve(Transcriber.self)) {
+         transcriptionService: Transcriber = serviceContainer.resolve(Transcriber.self),
+         transcriptFileService: TranscriptFileService = TranscriptFileService()) {
         self.fileUploadService = fileUploadService
         self.transcriptionService = transcriptionService
+        self.transcriptFileService = transcriptFileService
         setupProgressTracking()
     }
     
@@ -99,7 +102,46 @@ class FileUploadViewModel: ObservableObject {
         isProcessing = false
         isTranscribing = false
     }
-    
+
+    func processTranscript(_ url: URL) async {
+        isProcessing = true
+        hasProcessedFile = false
+        errorMessage = nil
+        currentFileName = url.lastPathComponent
+        progress = 0.0
+        statusMessage = "Loading transcript..."
+
+        do {
+            // Set up progress tracking for transcript loading
+            transcriptFileService.progressCallback = { [weak self] loadProgress in
+                Task { @MainActor in
+                    self?.progress = loadProgress
+                    if loadProgress < 0.5 {
+                        self?.statusMessage = "Loading transcript file..."
+                    } else {
+                        self?.statusMessage = "Parsing transcript..."
+                    }
+                }
+            }
+
+            // Load transcript directly (no transcription needed!)
+            let transcript = try await transcriptFileService.loadTranscript(from: url)
+
+            // Success
+            hasProcessedFile = true
+            processedFileName = currentFileName
+            transcriptText = transcript.text
+            self.transcript = transcript
+            statusMessage = "Transcript loaded successfully!"
+            progress = 1.0
+
+        } catch {
+            setError("Failed to load transcript: \(error.localizedDescription)")
+        }
+
+        isProcessing = false
+    }
+
     func setError(_ message: String) {
         errorMessage = message
         isProcessing = false
