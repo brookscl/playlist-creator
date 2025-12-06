@@ -52,6 +52,14 @@ class TranscriptFileService {
     // MARK: - Public Methods
 
     func loadTranscript(from url: URL) async throws -> Transcript {
+        // Start accessing security-scoped resource (needed for iOS file picker)
+        let didStartAccessing = url.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
         // Check file exists
         guard FileManager.default.fileExists(atPath: url.path) else {
             throw TranscriptFileError.fileNotFound

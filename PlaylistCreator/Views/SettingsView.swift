@@ -109,7 +109,7 @@ struct SettingsView: View {
                         .labelsHidden()
                         .pickerStyle(.menu)
 
-                        Text("GPT-4 is recommended for best results")
+                        Text("gpt-4o-mini is recommended for fast, cost-effective results")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -224,7 +224,7 @@ class SettingsViewModel: ObservableObject {
     @Published var apiKeySaved: Bool = false
     @Published var hasChanges: Bool = false
 
-    let availableModels = ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"]
+    let availableModels = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"]
 
     private let settingsManager: SettingsManager
     private var originalAPIKey: String = ""

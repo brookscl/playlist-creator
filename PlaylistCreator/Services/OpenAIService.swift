@@ -19,10 +19,10 @@ struct OpenAIConfiguration {
     let retryDelay: TimeInterval
     let rateLimitDelay: TimeInterval
 
-    init(model: String = "gpt-4",
+    init(model: String = "gpt-4o-mini",
          temperature: Double = 0.7,
-         maxTokens: Int = 1500,
-         timeout: TimeInterval = 30.0,
+         maxTokens: Int = 4096,
+         timeout: TimeInterval = 120.0,
          maxRetries: Int = 3,
          retryDelay: TimeInterval = 1.0,
          rateLimitDelay: TimeInterval = 0.0) {
@@ -117,6 +117,13 @@ class OpenAIService: MusicExtractor {
 
         print("✅ Retrieved OpenAI API key from settings")
 
+        // Check if transcript is very large and needs chunking
+        let maxChunkSize = 15000 // characters (~3750 tokens)
+        if transcript.text.count > maxChunkSize {
+            print("⚠️ Large transcript detected (\(transcript.text.count) chars), processing in chunks...")
+            return try await extractSongsFromLargeTranscript(transcript, apiKey: apiKey, chunkSize: maxChunkSize)
+        }
+
         // Apply rate limiting
         await applyRateLimit()
 
@@ -125,6 +132,86 @@ class OpenAIService: MusicExtractor {
 
         // Parse response
         return try parseResponse(response)
+    }
+
+    private func extractSongsFromLargeTranscript(_ transcript: Transcript, apiKey: String, chunkSize: Int) async throws -> [ExtractedSong] {
+        // Split transcript into chunks
+        let chunks = splitTranscriptIntoChunks(transcript, maxSize: chunkSize)
+        print("📦 Split transcript into \(chunks.count) chunks")
+
+        var allSongs: [ExtractedSong] = []
+
+        // Process each chunk
+        for (index, chunk) in chunks.enumerated() {
+            print("🔄 Processing chunk \(index + 1)/\(chunks.count)...")
+
+            // Apply rate limiting between chunks
+            await applyRateLimit()
+
+            // Send request for this chunk
+            let response = try await sendRequestWithRetry(transcript: chunk, apiKey: apiKey)
+
+            // Parse and collect songs
+            let songs = try parseResponse(response)
+            allSongs.append(contentsOf: songs)
+
+            print("✅ Chunk \(index + 1) complete: found \(songs.count) songs")
+        }
+
+        // Remove duplicates across chunks
+        var uniqueSongs: [ExtractedSong] = []
+        for song in allSongs {
+            if !uniqueSongs.contains(where: { normalizer.areLikelyDuplicates($0.song, song.song) }) {
+                uniqueSongs.append(song)
+            }
+        }
+
+        print("✅ Total unique songs found: \(uniqueSongs.count)")
+        return uniqueSongs
+    }
+
+    private func splitTranscriptIntoChunks(_ transcript: Transcript, maxSize: Int) -> [Transcript] {
+        let text = transcript.text
+        guard text.count > maxSize else {
+            return [transcript]
+        }
+
+        var chunks: [Transcript] = []
+        var currentStart = text.startIndex
+
+        while currentStart < text.endIndex {
+            // Calculate chunk end
+            let remainingCount = text.distance(from: currentStart, to: text.endIndex)
+            let chunkLength = min(maxSize, remainingCount)
+            var currentEnd = text.index(currentStart, offsetBy: chunkLength)
+
+            // Try to break at sentence boundary if not at the end
+            if currentEnd < text.endIndex {
+                // Look back up to 500 characters for a sentence boundary
+                let lookbackDistance = min(500, chunkLength)
+                let lookbackStart = text.index(currentEnd, offsetBy: -lookbackDistance)
+
+                if let lastPeriod = text[lookbackStart..<currentEnd].lastIndex(where: { $0 == "." || $0 == "!" || $0 == "?" }) {
+                    currentEnd = text.index(after: lastPeriod)
+                }
+            }
+
+            // Extract chunk text
+            let chunkText = String(text[currentStart..<currentEnd])
+
+            // Create chunk transcript (without segments for simplicity)
+            let chunkTranscript = Transcript(
+                text: chunkText,
+                segments: [],
+                language: transcript.language,
+                confidence: transcript.confidence
+            )
+
+            chunks.append(chunkTranscript)
+            currentStart = currentEnd
+        }
+
+        return chunks
     }
 
     // MARK: - Rate Limiting
@@ -307,6 +394,27 @@ class OpenAIService: MusicExtractor {
 
     // MARK: - Response Parsing
 
+    private func stripMarkdownCodeBlocks(from content: String) -> String {
+        var cleaned = content.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Remove markdown code block markers (```json ... ``` or ``` ... ```)
+        if cleaned.hasPrefix("```") {
+            // Find the first newline after ```
+            if let firstNewline = cleaned.firstIndex(of: "\n") {
+                cleaned = String(cleaned[cleaned.index(after: firstNewline)...])
+            }
+
+            // Remove trailing ```
+            if cleaned.hasSuffix("```") {
+                cleaned = String(cleaned.dropLast(3))
+            }
+
+            cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return cleaned
+    }
+
     private func parseResponse(_ response: OpenAIResponse) throws -> [ExtractedSong] {
         guard let firstChoice = response.choices.first else {
             return []
@@ -314,8 +422,11 @@ class OpenAIService: MusicExtractor {
 
         let content = firstChoice.message.content
 
+        // Clean the content - remove markdown code blocks if present
+        let cleanedContent = stripMarkdownCodeBlocks(from: content)
+
         // Parse JSON array from content
-        guard let jsonData = content.data(using: .utf8) else {
+        guard let jsonData = cleanedContent.data(using: .utf8) else {
             throw MusicExtractionError.parsingFailed("Failed to encode content as UTF-8")
         }
 
@@ -357,6 +468,11 @@ class OpenAIService: MusicExtractor {
 
             return processedSongs
         } catch {
+            // Log the actual content for debugging
+            print("❌ Failed to parse OpenAI response")
+            print("📄 Raw content: \(content)")
+            print("🧹 Cleaned content: \(cleanedContent)")
+            print("⚠️ Error: \(error)")
             throw MusicExtractionError.parsingFailed("Failed to parse music items: \(error.localizedDescription)")
         }
     }

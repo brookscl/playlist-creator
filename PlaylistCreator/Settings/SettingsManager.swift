@@ -19,9 +19,9 @@ class SettingsManager {
 
     // Default values
     private enum Defaults {
-        static let openAIModel = "gpt-4"
+        static let openAIModel = "gpt-4o-mini"
         static let openAITemperature = 0.7
-        static let openAIMaxTokens = 1500
+        static let openAIMaxTokens = 4096
     }
 
     // MARK: - Initialization
